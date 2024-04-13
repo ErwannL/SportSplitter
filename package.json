@@ -1,0 +1,30 @@
+{
+  "name": "electron-hello-world",
+  "version": "1.0.0",
+  "description": "Votre description ici",
+  "author": "Votre nom ici",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "tsc && electron .",
+    "build": "tsc && electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^29.3.0",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.4.5"
+  },
+  "build": {
+    "appId": "com.example.yourapp",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon\\calendar-soccer-sports-match-com.png"
+    }
+  },
+  "dependencies": {
+    "@types/react": "^18.2.77",
+    "@types/react-dom": "^18.2.25"
+  }
+}
