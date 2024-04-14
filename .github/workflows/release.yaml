@@ -30,6 +30,6 @@ jobs:
         run: |
           gh release create v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')" \
               --repo="" \
-              --title="Release v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}') \
+              --title='Release v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')' \
               --target main
 
