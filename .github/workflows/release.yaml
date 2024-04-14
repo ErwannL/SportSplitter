@@ -1,10 +1,9 @@
-
 name: Create release
 
 on:
-    push:
-      branches:
-        - main
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: write
@@ -12,7 +11,7 @@ permissions:
 jobs:
   release:
     name: Release pushed tag
-    runs-on: windows-latest
+    runs-on: windows latest
     steps:
 
       - name: Checkout the repository
@@ -40,5 +39,5 @@ jobs:
         run: |
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="v${{ steps.get_version.outputs.version }}}" \
+              --title="${tag#v}" \
               --generate-notes
