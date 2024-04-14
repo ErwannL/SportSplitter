@@ -1,44 +1,30 @@
-name: Create a Release Automatically
+name: Publish release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
   build:
-    runs-on: windows-latest
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node-version: [20.x]
 
     steps:
-    - name: Checkout the repository
-      uses: actions/checkout@v2
-
-    - name: Get version from package.json
-      id: get_version
-      run: echo "version=$(jq -r .version package.json)" >> $GITHUB_STATE
-
-    - name: Install Node.js
-      uses: actions/setup-node@v2
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
       with:
-        node-version: '21'
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build with make
-      run: make build
-
-    - name: Create a Release
-      id: create_release
-      uses: actions/create-release@v1
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: |
+        npm run publish
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
-      with:
-        tag_name: v${{ steps.get_version.outputs.version }}
-        release_name: Release v${{ steps.get_version.outputs.version }}
-        body: New features, bug fixes, etc.
-        draft: false
-        prerelease: false
-
-    - name: Save version as output
-      run: echo "version=${{ steps.get_version.outputs.version }}" >> $GITHUB_OUTPUT
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
