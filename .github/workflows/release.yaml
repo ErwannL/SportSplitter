@@ -15,7 +15,7 @@ jobs:
 
     - name: Get version from package.json
       id: get_version
-      run: echo "::set-output name=version::$(jq -r .version package.json)"
+      run: echo "version=$(jq -r .version package.json)" >> $GITHUB_STATE
 
     - name: Install Node.js
       uses: actions/setup-node@v2
@@ -39,3 +39,6 @@ jobs:
         body: New features, bug fixes, etc.
         draft: false
         prerelease: false
+
+    - name: Save version as output
+      run: echo "version=${{ steps.get_version.outputs.version }}" >> $GITHUB_OUTPUT
