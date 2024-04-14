@@ -24,19 +24,12 @@ jobs:
       # - name: Install dependencies
       #   run: npm install
 
-      - name: Get version from package.json
-        id: get_version
-        run: |
-          echo "version="$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')""
-
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          version: ${{ steps.get_version.outputs.version }}
         run: |
-          gh release create "v${{ env.version }}" `
+          gh release create "v"$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')"" `
               --repo="${{ env.GITHUB_REPOSITORY }}" `
-              --title="Release v${{ env.version }}" `
-              --notes="Release notes for v${{ env.version }}" `
+              --title="Release v"$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')" `
               --target main
 
