@@ -1,9 +1,10 @@
+
 name: Create release
 
 on:
-  push:
-    tags:
-      - "v*"
+    push:
+      branches:
+        - main
 
 permissions:
   contents: write
@@ -11,8 +12,27 @@ permissions:
 jobs:
   release:
     name: Release pushed tag
-    runs-on: ubuntu-22.04
+    runs-on: windows-latest
     steps:
+
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Get version from package.json
+        id: get_version
+        run: echo "version=$(jq -r .version package.json)" >> $GITHUB_STATE
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build with make
+        run: make build
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -20,5 +40,5 @@ jobs:
         run: |
           gh release create "$tag" \
               --repo="$GITHUB_REPOSITORY" \
-              --title="${tag#v}" \
+              --title="v${{ steps.get_version.outputs.version }}}" \
               --generate-notes
