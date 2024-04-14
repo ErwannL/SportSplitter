@@ -27,7 +27,7 @@ jobs:
       - name: Get version from package.json
         id: get_version
         run: |
-          echo "version=\"$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')\""
+          echo "version="$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')""
 
       - name: Create release
         env:
