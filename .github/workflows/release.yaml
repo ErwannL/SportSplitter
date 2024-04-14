@@ -26,7 +26,8 @@ jobs:
 
       - name: Get version from package.json
         id: get_version
-        run: echo "version=$(jq -r .version package.json)" >> $GITHUB_STATE
+        run: |
+          echo "version=$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')" >> $GITHUB_STATE
 
       - name: Create release
         env:
