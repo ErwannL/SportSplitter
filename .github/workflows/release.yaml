@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build with make
-        run: make build
+      # - name: Build with make
+      #   run: make build
 
       - name: Create release
         env:
