@@ -15,23 +15,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '14'
+          node-version: '21'
 
       - name: Install dependencies
         run: npm install
 
       - name: Get version from package.json
         id: get_version
-        run: echo ::set-output name=VERSION::$(node -e "console.log(require('./package.json').version)")
+        run: echo "version=$(jq -r .version package.json)" >> $GITHUB_STATE
 
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          version: ${{ steps.get_version.outputs.VERSION }}
+          version: ${{ steps.get_version.outputs.version }}
         run: |
           gh release create "v${{ env.version }}" `
               --repo="${{ env.GITHUB_REPOSITORY }}" `
