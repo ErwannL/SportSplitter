@@ -25,7 +25,10 @@ jobs:
         run: npm install
 
       - name: Launch app
-        run: make build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          make build
 
       - name: Create release
         env:
