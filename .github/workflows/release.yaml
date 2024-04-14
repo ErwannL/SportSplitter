@@ -28,7 +28,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')" \
+          gh release create v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')" \
               --repo="" \
               --title="Release v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')" \
               --target main
