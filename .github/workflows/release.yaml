@@ -32,22 +32,23 @@ jobs:
 
       - name: Check for executable
         run: |
-          json=$(cat package.json)
-          name=$(echo "$json" | grep -o '"name": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
-          version=$(echo "$json" | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
-          search_dir="dist"
-          exe_file="${name}_Setup_${version}.exe"
-          if [ -f "$search_dir/$exe_file" ]; then
-            echo "Executable found!"
-          else
-            echo "Error: Executable not found in dist directory!"
-            echo "Contents of variables:"
-            echo "Name: $name"
-            echo "Version: $version"
-            echo "Contents of dist directory:"
-            ls -l "$search_dir"
-            exit 1
-          fi
+          $json = Get-Content package.json -Raw | ConvertFrom-Json
+          $name = $json.name
+          $version = $json.version
+          $search_dir = "dist"
+          $exe_file = "${name}_Setup_${version}.exe"
+
+          if (Test-Path "$search_dir\$exe_file") {
+              Write-Output "Executable found!"
+          } else {
+              Write-Output "Error: Executable not found in dist directory!"
+              Write-Output "Contents of variables:"
+              Write-Output "Name: $name"
+              Write-Output "Version: $version"
+              Write-Output "Contents of dist directory:"
+              Get-ChildItem -Path $search_dir
+              exit 1
+          }
 
       - name: Create release
         env:
