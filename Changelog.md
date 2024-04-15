@@ -2,8 +2,12 @@
 
 ## added
 
-* changelog file
+* add 2 step GHA
 
 ## modified
 
+*
+
 ## removed
+
+*

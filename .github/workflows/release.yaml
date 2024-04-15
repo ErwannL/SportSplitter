@@ -1,16 +1,17 @@
-name: Create release
+
+name: All tests
 
 on:
   push:
     branches:
-      - main
+      - '*'
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    name: Release creation
+  build:
+    name: Build and Test
     runs-on: windows-latest
     steps:
       - name: Checkout code
@@ -51,6 +52,20 @@ jobs:
               exit 1
           }
 
+  release:
+    name: Create Release
+    runs-on: windows-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '21'
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -61,10 +76,16 @@ jobs:
           $version = $json.version
           $search_dir = "dist"
           $exe_file = "${name} Setup ${version}.exe"
-          Write-Output "Contents of variables:"
-          Write-Output "Name: $name"
-          Write-Output "Version: $version"
-          Write-Output "exe_file: $exe_file"
-          Write-Output "Contents of dist directory:"
-          Get-ChildItem -Path $search_dir
-          gh release create v$version --title="Release v$version" --target=main --notes="$changelog" "$search_dir\$exe_file"
+
+          # Tentative de création de la version
+          if (-not (gh release create v$version --title="Release v$version" --target=main --notes="$changelog" "$search_dir\$exe_file")) {
+              # Si la création échoue, afficher les informations et quitter avec le code d'erreur 1
+              Write-Output "Failed to create release!"
+              Write-Output "Contents of variables:"
+              Write-Output "Name: $name"
+              Write-Output "Version: $version"
+              Write-Output "exe_file: $exe_file"
+              Write-Output "Contents of dist directory:"
+              Get-ChildItem -Path $search_dir
+              exit 1
+          }
