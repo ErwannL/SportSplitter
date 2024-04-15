@@ -55,11 +55,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          json=$(cat package.json)
-          NAME=$(echo "$json" | grep -o '"name": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
-          VERSION=$(echo "$json" | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
-          gh release create v$VERSION \
+          $json = Get-Content package.json -Raw | ConvertFrom-Json
+          $name = $json.name
+          $version = $json.version
+          $search_dir = "dist"
+          $exe_file = "${name} Setup ${version}.exe"
+          gh release create v${version} \
               --repo="" \
-              --title="Release v$VERSION" \
+              --title="Release v${version}" \
               --target main \
-              --attach="dist/$NAME Setup $VERSION.exe"
+              --attach="$search_dir\$exe_file"
