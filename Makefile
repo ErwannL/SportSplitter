@@ -20,7 +20,7 @@ superClean: clean
 updateLock:
 	npm update
 
-push:
+push: updateLock
 	git add .
 	git commit -m "$(ARGS)"
 	git push

@@ -30,14 +30,20 @@ jobs:
         run: |
           make build
 
-      - name: Check for executable
-        run: |
-          if [ -f "dist/sport_splitter Setup $(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')"] ]; then
-            echo "Executable found!"
-          else
-            echo "Error: Executable not found in dist directory!"
-            exit 1
-          fi
+          steps:
+            - name: Check for executable
+              run: |
+                json=$(cat package.json)
+                name=$(echo "$json" | grep -o '"name": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
+                version=$(echo "$json" | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
+                search_dir="dist"
+                exe_file="${name}_Setup_${version}.exe"
+                if [ -f "$search_dir/$exe_file" ]; then
+                  echo "Executable found!"
+                else
+                  echo "Error: Executable not found in dist directory!"
+                  exit 1
+                fi
 
       - name: Create release
         env:
