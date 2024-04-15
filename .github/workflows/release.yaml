@@ -66,4 +66,4 @@ jobs:
           Write-Output "exe_file: $exe_file"
           Write-Output "Contents of dist directory:"
           Get-ChildItem -Path $search_dir
-          gh release create v$version --repo=owner/repo --title="Release v$version" --target=main --notes="Release notes here" "$search_dir\$exe_file"
+          gh release create v$version --title="Release v$version" --target=main --notes="Release notes here" "$search_dir\$exe_file"
