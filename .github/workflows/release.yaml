@@ -60,4 +60,10 @@ jobs:
           $version = $json.version
           $search_dir = "dist"
           $exe_file = "${name} Setup ${version}.exe"
-          gh release create v$version --repo=owner/repo --title="Release v$version" --target=main --notes="Release notes here" --attach="$search_dir\$exe_file"
+          Write-Output "Contents of variables:"
+          Write-Output "Name: $name"
+          Write-Output "Version: $version"
+          Write-Output "exe_file: $exe_file"
+          Write-Output "Contents of dist directory:"
+          Get-ChildItem -Path $search_dir
+          gh release create v$version --repo=owner/repo --title="Release v$version" --target=main --notes="Release notes here" "$search_dir\$exe_file"
