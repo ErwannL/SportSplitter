@@ -60,8 +60,4 @@ jobs:
           $version = $json.version
           $search_dir = "dist"
           $exe_file = "${name} Setup ${version}.exe"
-          gh release create v${version} \
-              --repo="" \
-              --title="Release v${version}" \
-              --target main \
-              --attach="$search_dir\$exe_file"
+          gh release create v$version --repo=owner/repo --title="Release v$version" --target=main --notes="Release notes here" --attach="$search_dir\$exe_file"
