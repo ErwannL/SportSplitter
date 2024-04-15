@@ -1,5 +1,5 @@
 
-.PHONY: start build clean superClean
+.PHONY: start build clean superClean updateLock push
 
 uselessFiles := $(wildcard src/*.js)
 
@@ -16,3 +16,11 @@ clean:
 
 superClean: clean
 	rm -rf dist
+
+updateLock:
+	npm update
+
+push:
+	git add .
+	git commit -m "$(ARGS)"
+	git push
