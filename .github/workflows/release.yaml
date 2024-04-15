@@ -56,6 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $json = Get-Content package.json -Raw | ConvertFrom-Json
+          $changelog = Get-Content Changelog.md -Raw
           $name = $json.name
           $version = $json.version
           $search_dir = "dist"
@@ -66,4 +67,4 @@ jobs:
           Write-Output "exe_file: $exe_file"
           Write-Output "Contents of dist directory:"
           Get-ChildItem -Path $search_dir
-          gh release create v$version --title="Release v$version" --target=main --notes="Release notes here" "$search_dir\$exe_file"
+          gh release create v$version --title="Release v$version" --target=main --notes="$changelog" "$search_dir\$exe_file"
