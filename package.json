@@ -1,6 +1,6 @@
 {
   "name": "sport_splitter",
-  "version": "0.0.4",
+  "version": "0.0.3",
   "description": "Desktop application to help teachers.",
   "author": "LAPLANTE Erwann",
   "main": "src/main.js",

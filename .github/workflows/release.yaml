@@ -30,28 +30,29 @@ jobs:
         run: |
           make build
 
-          steps:
-            - name: Check for executable
-              run: |
-                json=$(cat package.json)
-                name=$(echo "$json" | grep -o '"name": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
-                version=$(echo "$json" | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
-                search_dir="dist"
-                exe_file="${name}_Setup_${version}.exe"
-                if [ -f "$search_dir/$exe_file" ]; then
-                  echo "Executable found!"
-                else
-                  echo "Error: Executable not found in dist directory!"
-                  exit 1
-                fi
+      - name: Check for executable
+        run: |
+          json=$(cat package.json)
+          name=$(echo "$json" | grep -o '"name": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
+          version=$(echo "$json" | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
+          search_dir="dist"
+          exe_file="${name}_Setup_${version}.exe"
+          if [ -f "$search_dir/$exe_file" ]; then
+            echo "Executable found!"
+          else
+            echo "Error: Executable not found in dist directory!"
+            exit 1
+          fi
 
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')
+          json=$(cat package.json)
+          NAME=$(echo "$json" | grep -o '"name": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
+          VERSION=$(echo "$json" | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
           gh release create v$VERSION \
               --repo="" \
               --title="Release v$VERSION" \
               --target main \
-              --attach="dist/sport_splitter Setup $VERSION.exe"
+              --attach="dist/$NAME Setup $VERSION.exe"
