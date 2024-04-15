@@ -1,8 +1,8 @@
 {
-  "name": "electron-hello-world",
-  "version": "0.0.2",
-  "description": "Votre description ici",
-  "author": "Votre nom ici",
+  "name": "sport_splitter",
+  "version": "0.0.3",
+  "description": "Desktop application to help teachers.",
+  "author": "LAPLANTE Erwann",
   "main": "src/main.js",
   "scripts": {
     "start": "tsc && electron .",
@@ -14,7 +14,6 @@
     "typescript": "^5.4.5"
   },
   "build": {
-    "appId": "com.example.yourapp",
     "directories": {
       "output": "dist"
     },

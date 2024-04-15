@@ -30,12 +30,22 @@ jobs:
         run: |
           make build
 
+      - name: Check for executable
+        run: |
+          if [ -f "dist/sport_splitter Setup $(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')"] ]; then
+            echo "Executable found!"
+          else
+            echo "Error: Executable not found in dist directory!"
+            exit 1
+          fi
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}') \
+          VERSION=$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')
+          gh release create v$VERSION \
               --repo="" \
-              --title="Release v$(grep -o '"version": *"[^"]*"' package.json | awk -F'"' '{print $4}')" \
-              --target main
-
+              --title="Release v$VERSION" \
+              --target main \
+              --attach="dist/sport_splitter Setup $VERSION.exe"
