@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build and release:
+  build_and_release:
     name: Build and Test
     runs-on: windows-latest
     steps:
