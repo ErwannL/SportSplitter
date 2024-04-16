@@ -9,8 +9,10 @@
     "build": "tsc && electron-builder"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
     "electron": "^29.3.0",
     "electron-builder": "^24.13.3",
+    "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5"
   },
   "build": {
@@ -24,6 +26,7 @@
   },
   "dependencies": {
     "@types/react": "^18.2.77",
-    "@types/react-dom": "^18.2.25"
+    "@types/react-dom": "^18.2.25",
+    "caniuse-lite": "^1.0.30001610"
   }
 }

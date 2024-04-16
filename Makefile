@@ -1,15 +1,18 @@
 
-.PHONY: start build clean superClean updateLock push
+.PHONY: start build clean superClean updateLock push updateTailwind
 
 uselessFiles := $(wildcard src/*.js)
 
-start:
+start: updateTailwind
 	npm start
 	@$(MAKE) clean
 
-build:
+build: updateTailwind
 	npm run build
 	@$(MAKE) clean
+
+updateTailwind:
+	npx tailwindcss -i ./src/input.css -o ./src/output.css
 
 clean:
 	rm -rf $(uselessFiles)
