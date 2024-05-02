@@ -2,12 +2,12 @@
 
 ## added
 
-* test if main on step
+*
 
 ## modified
 
-*
+* files architecture
 
 ## removed
 
-* 2 step GHA
+*

@@ -5,6 +5,14 @@ build/
 # result files
 dist/
 
+# vscode files
+.vscode/
+
+#automatic files
+src/css/output.css
+package-lock.json
+src/ts/*.js
+
 ###################################################################################################
 
 # Logs
