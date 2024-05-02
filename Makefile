@@ -12,7 +12,7 @@ build: updateTailwind
 	@$(MAKE) clean
 
 updateTailwind:
-	npx tailwindcss -i ./src/input.css -o ./src/output.css
+	npx tailwindcss -i ./src/css/input.css -o ./src/css/output.css
 
 clean:
 	rm -rf $(uselessFiles)
@@ -23,7 +23,7 @@ superClean: clean
 updateLock:
 	npm update
 
-push: updateLock
+push: updateLock superClean
 	git add .
 	git commit -m "$(ARGS)"
 	git push
