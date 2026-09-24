@@ -1,6 +1,6 @@
 .PHONY: up down logs dev-backend dev-frontend install test test-backend test-frontend lint
 
-up:            ## Lance toute l'application (http://localhost:8080)
+up:            ## Lance toute l'application (http://localhost:8090)
 	docker compose up --build -d
 
 down:

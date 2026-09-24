@@ -5,7 +5,7 @@ Génère automatiquement la répartition des sports d'EPS : quelle classe fait q
 ## Démarrage rapide
 
 ```bash
-make up          # docker compose : http://localhost:8080
+make up          # docker compose : http://localhost:8090
 ```
 
 Services : `frontend` (React, servi par nginx), `backend` (FastAPI + OR-Tools), `db` (PostgreSQL).
