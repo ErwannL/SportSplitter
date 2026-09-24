@@ -180,7 +180,7 @@ WRAP = Alignment(wrap_text=True, vertical="center", horizontal="center")
 
 def _hex(color: str) -> str:
     c = color.lstrip("#")
-    return (c * 2 if len(c) == 3 else c)[:6].upper() or "FFFFFF"
+    return ("".join(ch * 2 for ch in c) if len(c) == 3 else c)[:6].upper() or "FFFFFF"
 
 
 def _text_color(color: str) -> str:
