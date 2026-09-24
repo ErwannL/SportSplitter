@@ -41,7 +41,7 @@ describe("StepGuide", () => {
   it("prêt : bouton générer hors planning", () => {
     setWs(readyWs());
     renderAt(<StepGuide />, "/sports");
-    expect(screen.getByText("Générer le planning")).toBeInTheDocument();
+    expect(screen.getByText("Générer le planning").closest("a")).toHaveAttribute("href", "/?run=1");
     expect(next()).toBeNull();
   });
   it("masqué sur le planning avec des solutions", () => {

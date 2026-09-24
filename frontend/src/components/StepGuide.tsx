@@ -80,7 +80,7 @@ export function StepGuide() {
       </ol>
 
       {ready && !onPlanning && (
-        <Link to="/" className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-on shadow-sm hover:bg-indigo-500">
+        <Link to="/?run=1" className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-on shadow-sm hover:bg-indigo-500">
           {t("guide.goGenerate")} <ArrowRight size={16} />
         </Link>
       )}
