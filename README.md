@@ -7,7 +7,8 @@ Génère automatiquement la répartition des sports d'EPS : quelle classe fait q
 ## Démarrage rapide
 
 ```bash
-make up          # docker compose : http://localhost:8090
+cp .env.example .env   # puis remplissez les secrets (voir Docs/ORQEA_SSO.md)
+make up                # docker compose : http://localhost:8090 (ports publiés sur 127.0.0.1)
 ```
 
 Services : `frontend` (React, servi par nginx), `backend` (FastAPI + OR-Tools), `db` (PostgreSQL).
@@ -46,17 +47,24 @@ Les professeurs d'EPS indiquent quand l'EPS est possible ; SportSplitter constru
 ## Administration
 
 La page **Administration** permet de modifier les règles métier de l'algorithme (hiver souple, strict ou ignoré, nombre d'écarts tolérés, sports prioritaires obligatoires, répétition des sports, taille minimale d'une barrette, nombre de solutions et temps de calcul).
-En développement, tout le monde est administrateur. Le rôle est donné par `SPORTSPLITTER_ROLE` (`admin` par défaut) en attendant la gestion des utilisateurs, et l'API refuse la modification des règles aux autres rôles.
+Ces règles sont **globales** ; seul un utilisateur de rôle `admin` (rôle transmis par Orqea) peut les modifier.
+
+## Connexion via Orqea
+
+SportSplitter n'a ni inscription ni mot de passe : on y entre uniquement depuis [Orqea](https://orqea.dev), qui accorde l'accès personne par personne. Orqea redirige vers `/sso#sso=<jeton>` ; SportSplitter vérifie ce jeton (60 s, usage unique) et ouvre une session de 8 h. Sans session, l'application n'affiche que « Accès via Orqea ». Chaque utilisateur a son propre espace de travail.
+
+Tout est décrit dans [`Docs/ORQEA_SSO.md`](Docs/ORQEA_SSO.md) : contrat du jeton, variables (`.env.example`), révocation (≤ 8 h), reprise de l'ancien espace (`SPORTSPLITTER_LEGACY_OWNER_SUB`), mode développement (`make dev-backend`, `make sso-url SUB=1 ROLE=admin`).
 
 ## Dump de diagnostic
 
 Quand un planning ne sort pas comme prévu, avec l'application lancée :
 
 ```bash
-./scripts/dump.sh      # ou : make dump
+SS_SESSION=<valeur du cookie ss_session> ./scripts/dump.sh   # cookie visible dans les outils du navigateur
+DEV_SUB=1 ./scripts/dump.sh                                  # en développement (SPORTSPLITTER_DEV_LOGIN=1)
 ```
 
-Le script télécharge `test/dumps/dump_AAAA-MM-JJ_HH-MM-SS.zip`, le commite et le pousse sur la branche courante. Le zip contient :
+Le dump ne concerne que l'espace de l'utilisateur connecté. Le script télécharge `test/dumps/dump_AAAA-MM-JJ_HH-MM-SS.zip`, le commite et le pousse sur la branche courante. Le zip contient :
 
 * `LISEZMOI.txt` : résumé lisible de la grille (cases ouvertes et fermées), des niveaux, des sports, des lieux et des réglages ;
 * `erreurs.txt` et `avertissements.txt` : le résultat du calcul ;
