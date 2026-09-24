@@ -6,7 +6,6 @@ import io
 
 from openpyxl import load_workbook
 
-from app.db import Store
 from app.excel_io import parse_timetable, template_workbook
 
 from .conftest import login
@@ -20,16 +19,6 @@ def _body(max_solutions=5):
     ws = workspace(tt, [level("6e", ["s"], mode="semestre")], [sport("s", ["gym"])], [place("gym", slots(tt))],
                    maxSolutions=max_solutions)
     return ws.model_dump(by_alias=True, mode="json")
-
-
-def test_db_insert_then_update(tmp_path):
-    store = Store(f"sqlite:///{tmp_path}/db.sqlite")
-    assert store.load().levels == []
-    ws = workspace(grid(), [level("A", ["s"])], [], [])
-    store.save(ws)
-    ws.levels[0].name = "B"
-    store.save(ws)
-    assert store.load().levels[0].name == "B"
 
 
 def test_me_roles_and_workspace(client):

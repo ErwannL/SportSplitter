@@ -160,16 +160,19 @@ def me(user: SessionUser = Depends(current_user)):
 
 
 @api.get("/workspace", response_model=Workspace)
-def read_workspace(store: Store = Depends(get_store)):
-    return store.load()
+def read_workspace(store: Store = Depends(get_store), user: SessionUser = Depends(current_user)):
+    return store.load(user.sub)
 
 
 @api.put("/workspace", response_model=Workspace)
 def write_workspace(ws: Workspace, store: Store = Depends(get_store), user: SessionUser = Depends(current_user)):
-    if user.role != "admin" and ws.settings != store.load().settings:
-        raise HTTPException(status_code=403, detail="Seul un administrateur peut modifier les règles.")
-    store.save(ws)
-    return ws
+    """Enregistre l'espace de l'utilisateur ; les règles (globales) ne changent que pour un admin."""
+    if ws.settings != store.settings():
+        if user.role != "admin":
+            raise ApiError(403, "RULES_ADMIN_ONLY")
+        store.save_settings(ws.settings)
+    store.save(user.sub, ws)
+    return store.load(user.sub)
 
 
 @api.post("/timetable/parse", response_model=Timetable)
@@ -215,9 +218,9 @@ def export(req: ExportRequest = Body(...)):
 
 
 @api.get("/debug/dump")
-def debug_dump(store: Store = Depends(get_store)):
-    """Zip de diagnostic : données actuelles, erreurs et avertissements du calcul."""
-    name, data = debug.dump_zip(store.load())
+def debug_dump(store: Store = Depends(get_store), user: SessionUser = Depends(current_user)):
+    """Zip de diagnostic de l'espace de l'utilisateur connecté : données, erreurs et avertissements du calcul."""
+    name, data = debug.dump_zip(store.load(user.sub))
     return Response(data, media_type="application/zip", headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
 
@@ -233,6 +236,8 @@ def create_app(cfg: Config | None = None, store: Store | None = None) -> FastAPI
     app = FastAPI(title="SportSplitter by Orqea API", version="2.0.0", **docs)
     app.state.config = cfg
     app.state.store = store or Store()
+    app.state.store.init_settings()
+    app.state.store.claim_legacy(cfg.legacy_owner_sub)
     # Pas de CORS : le frontend est servi sur la même origine que /api (nginx).
 
     @app.exception_handler(ApiError)
