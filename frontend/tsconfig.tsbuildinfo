@@ -1,1 +1,0 @@
-{"root":["./src/main.tsx","./src/store.ts","./src/types.ts","./src/components/Layout.tsx","./src/components/TimetableGrid.tsx","./src/components/ui.tsx","./src/lib/api.ts","./src/lib/periods.ts","./src/lib/readiness.ts","./src/pages/Classes.tsx","./src/pages/Places.tsx","./src/pages/Planning.tsx","./src/pages/Sports.tsx","./vite.config.ts"],"errors":true,"version":"5.6.3"}
