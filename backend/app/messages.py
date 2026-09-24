@@ -38,6 +38,10 @@ FR: dict[str, str] = {
     "same_place": "Plusieurs classes de « {level} » partagent « {place} » ({period}).",
     "separate_impossible": ("« {sport} » n'a pas assez de lieux pour séparer les {count} classes de « {level} » "
                             "(hors barrette, chaque classe doit être dans un lieu différent)."),
+    "level_alone_impossible": ("« {level} » ne peut pas être planifié, même seul : ses sports, leurs lieux et "
+                               "leurs disponibilités ne permettent pas de couvrir toutes ses périodes."),
+    "place_overloaded": ("« {place} » est demandé par trop de classes en même temps : {levels} le {day} à {time} "
+                         "({segment}), alors qu'il n'accueille que {capacity} classe(s)."),
     "no_level": "Aucun niveau n'est configuré.",
     "level_no_session": "Le niveau « {level} » n'a aucune séance dans son rythme.",
     "row_no_duration": "Le créneau « {row} » n'a pas d'heure de début et de fin lisible.",
@@ -73,6 +77,10 @@ EN: dict[str, str] = {
     "same_place": "Several classes of “{level}” share “{place}” ({period}).",
     "separate_impossible": ("“{sport}” does not have enough places to split the {count} classes of “{level}” "
                             "(unless paired, each class must be in a different place)."),
+    "level_alone_impossible": ("“{level}” cannot be scheduled even on its own: its sports, their places and "
+                               "their availability cannot cover all its periods."),
+    "place_overloaded": ("“{place}” is needed by too many classes at once: {levels} on {day} at {time} "
+                         "({segment}), but it only takes {capacity} class(es)."),
     "no_level": "No level is set up.",
     "level_no_session": "Level “{level}” has no session in its rhythm.",
     "row_no_duration": "Slot “{row}” has no readable start and end time.",

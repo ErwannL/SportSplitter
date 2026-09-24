@@ -108,7 +108,7 @@ def _two_levels(cycle_a, cycle_b):
 def test_cycles_conflict_only_on_shared_real_week():
     # A : semaines réelles 0, 2, 4 ; B (cycle 3, semaine C) : 2, 5 -> semaine 2 commune
     res = solve(_two_levels([[60], []], [[], [], [60]]))
-    assert res.status == "infeasible" and codes(res.issues) == {"no_solution"}
+    assert res.status == "infeasible" and codes(res.issues) == {"place_overloaded"}
     # A : 1, 3 ; B : 0 (cycle 4) -> jamais ensemble
     res = solve(_two_levels([[], [60]], [[60], [], [], []]))
     assert res.status == "ok" and res.solutions[0].weeks == 4
@@ -215,7 +215,7 @@ def test_winter_soft_limit_and_hard_and_off():
     res = solve(_winter("soft", maxWinterViolations=0))
     assert res.status == "infeasible" and codes(res.issues) == {"winter_limit"}
     res = solve(_winter("hard"))
-    assert res.status == "infeasible" and codes(res.issues) == {"no_solution"}
+    assert res.status == "infeasible" and codes(res.issues) == {"level_alone_impossible"}
     res = solve(_winter("off"))
     assert res.status == "ok" and not res.solutions[0].violations
 
@@ -331,3 +331,16 @@ def test_fill_direction_preference():
     ws.preferences.fill_vertical, ws.preferences.fill_horizontal = "none", "none"
     res = solve(ws)
     assert all(s.fill_cost == 0 for s in res.solutions)
+
+
+def test_explain_names_the_overloaded_place():
+    from .factories import grid, level, place, slots, sport, workspace
+
+    tt = grid(days=2, minutes=[60, 60])
+    ws = workspace(tt, [level("6e", ["a"], cycle=[[60, 60]]), level("5e", ["a"], cycle=[[60, 60]]),
+                        level("4e", ["a"], cycle=[[60]])], [sport("a", ["gym"])], [place("gym", slots(tt))])
+    res = solve(ws)
+    assert res.status == "infeasible"
+    over = [i for i in res.issues if i.code == "place_overloaded"]
+    assert len(over) == 1 and over[0].target == "gym" and over[0].params["capacity"] == 1
+    assert over[0].params["sports"] == "A" and "4e" in over[0].params["levels"]

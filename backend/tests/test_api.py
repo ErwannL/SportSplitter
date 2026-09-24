@@ -73,7 +73,7 @@ def test_parse_and_template(client):
     assert r.status_code == 200 and r.headers["content-type"] == XLSX
     assert parse_timetable(r.content).days[0] == "Lundi"
     r = client.post("/api/timetable/parse", files={"file": ("m.xlsx", template_workbook(), XLSX)})
-    assert r.status_code == 200 and r.json()["fileName"] == "m.xlsx" and r.json()["rows"][0]["minutes"] == 60
+    assert r.status_code == 200 and r.json()["fileName"] == "m.xlsx" and r.json()["rows"][0]["minutes"] == 30
     r = client.post("/api/timetable/parse", files={"file": ("bad.xlsx", b"nope", XLSX)})
     assert r.status_code == 422 and "illisible" in r.json()["detail"]
 

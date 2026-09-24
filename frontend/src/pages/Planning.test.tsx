@@ -101,6 +101,23 @@ describe("PlanningPage : configuration", () => {
     await userEvent.click(screen.getByText("Générer les plannings"));
     expect(await screen.findByText("offline")).toBeInTheDocument();
   });
+  it("?run=1 relance la génération automatiquement (si prêt) puis retire le paramètre", async () => {
+    setWs(readyWs());
+    const f = mockFetch(() => Promise.resolve(jsonRes({ status: "infeasible", solutions: [], totalFound: 0, truncated: false, issues: [] })));
+    renderAt(<PlanningPage />, "/?run=1");
+    await waitFor(() => expect(f).toHaveBeenCalledWith("/api/solve", expect.anything()));
+    expect(screen.getByTestId("loc").textContent).toBe("/");
+    expect(f.mock.calls.filter(([u]) => u === "/api/solve")).toHaveLength(1);
+  });
+  it("?run=1 sans configuration complète : ne lance rien", async () => {
+    const ws = readyWs();
+    ws.levels = [];
+    setWs(ws);
+    const f = mockFetch(() => Promise.resolve(jsonRes({})));
+    renderAt(<PlanningPage />, "/?run=1");
+    await waitFor(() => expect(screen.getByTestId("loc").textContent).toBe("/"));
+    expect(f.mock.calls.some(([u]) => u === "/api/solve")).toBe(false);
+  });
   it("génération : impossible avec problèmes triés et cliquables", async () => {
     setWs(readyWs());
     let resolve!: (r: Response) => void;

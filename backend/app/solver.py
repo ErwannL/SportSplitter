@@ -159,7 +159,7 @@ def diagnose(ws: Workspace) -> list[Issue]:
 
 
 class _Model:
-    def __init__(self, ws: Workspace):
+    def __init__(self, ws: Workspace, soft_capacity: bool = False):
         self.ws = ws
         cfg = ws.settings
         m = self.m = cp_model.CpModel()
@@ -269,16 +269,23 @@ class _Model:
                     self.v[lv.id, p] = v
 
         # capacité des lieux : par semaine réelle du cycle commun, cellule et segment de l'année
-        load: dict[tuple, list] = {}
+        self.load: dict[tuple, list] = {}
         for (qi, ci, p, pid), n in self.u.items():
             q = self.sessions[qi]
             cycle = len(q.level.cycle)
             for real in range(q.week, self.weeks, cycle):
                 for cell in q.candidates[ci].cells:
                     for seg in PERIODS[p]:
-                        load.setdefault((pid, real, cell, seg), []).append(n)
-        for (pid, *_), terms in load.items():
-            m.add(sum(terms) <= places[pid].capacity)
+                        self.load.setdefault((pid, real, cell, seg), []).append((n, q.level.name))
+        # en mode diagnostic, la capacité peut être dépassée (dépassement minimisé)
+        self.overflow: dict[tuple, cp_model.IntVar] = {}
+        for key, terms in self.load.items():
+            cap = places[key[0]].capacity
+            if soft_capacity:
+                self.overflow[key] = m.new_int_var(0, sum(q.level.groups for q in self.sessions), "")
+                m.add(sum(n for n, _ in terms) <= cap + self.overflow[key])
+            else:
+                m.add(sum(n for n, _ in terms) <= cap)
 
         self.winter_count = sum(self.v.values())
         self.sep_count = sum(self.sep)
@@ -385,6 +392,39 @@ def _enumerate(ws: Workspace, winter: int, sep: int, prio: int, fill: int, hint:
     return col
 
 
+def explain(ws: Workspace) -> list[Issue]:
+    """Pourquoi aucun planning n'existe : niveau impossible seul, ou lieu surchargé (qui, où, quand)."""
+    out: list[Issue] = []
+    for lv in ws.levels:
+        alone = ws.model_copy(update={"levels": [lv]})
+        if _optimum(alone) is None:
+            out.append(issue("level_alone_impossible", target=lv.id, target_type="level", level=lv.name))
+    if out:
+        return out
+
+    model = _Model(ws, soft_capacity=True)
+    model.m.minimize(sum(model.overflow.values()))
+    solver = cp_model.CpSolver()
+    solver.parameters.max_time_in_seconds = ws.settings.time_limit
+    # chaque niveau est faisable seul et seule la capacité relie les niveaux : ce modèle n'échoue qu'en cas de
+    # temps de calcul dépassé
+    if solver.solve(model.m) not in (cp_model.OPTIMAL, cp_model.FEASIBLE):  # pragma: no cover
+        return [issue("no_solution", target_type="place")]
+    tt = ws.timetable
+    seg_fr = {"Q1": "sept–nov", "Q2": "déc–janv", "Q3": "févr–mars", "Q4": "avr–juin"}
+    seen: dict[str, Issue] = {}
+    for (pid, _, (day, row), seg), var in sorted(model.overflow.items(), key=lambda kv: (kv[0][2], kv[0][3])):
+        if pid in seen or not solver.value(var):
+            continue
+        place = model.places[pid]
+        levels = sorted({name for n, name in model.load[(pid, _, (day, row), seg)] if solver.value(n)})
+        sports = sorted({s.name for s in ws.sports if pid in s.place_ids})
+        seen[pid] = issue("place_overloaded", target=pid, target_type="place", place=place.name,
+                          levels=", ".join(levels), day=tt.days[day], time=tt.rows[row].start,  # type: ignore[union-attr]
+                          segment=seg_fr[seg], capacity=place.capacity, sports=", ".join(sports))
+    return list(seen.values()) or [issue("no_solution", target_type="place")]
+
+
 def solve(ws: Workspace) -> SolveResult:
     issues = validate(ws)
     if blocking(issues):
@@ -396,7 +436,7 @@ def solve(ws: Workspace) -> SolveResult:
 
     best = _optimum(ws)
     if best is None:
-        return SolveResult(status="infeasible", issues=issues + diag + [issue("no_solution", target_type="place")])
+        return SolveResult(status="infeasible", issues=issues + diag + explain(ws))
 
     winter, sep, prio, fill, hint = best
     cfg = ws.settings

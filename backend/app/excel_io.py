@@ -307,21 +307,22 @@ def export_solutions(ws: Workspace, sols: list[Solution], lang: str = "fr") -> b
 
 
 def template_workbook() -> bytes:
-    """Grille vide : créneaux d'une heure, pause de midi et mercredi après-midi fermés."""
+    """Grille vide au pas de 30 min : 8h-18h, pause de midi et mercredi après-midi fermés."""
     wb = Workbook()
     sh = wb.active
     sh.title = "Emploi du temps"
     days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"]
     sh.append(["Heures", *days])
-    for h in range(8, 18):
-        closed = "X" if h == 12 else None
-        sh.append([f"{h}h - {h + 1}h", *[closed] * 5])
-    sh.merge_cells("D7:D11")  # mercredi 13h-18h : fermé
+    fmt = lambda m: f"{m // 60}h{m % 60:02d}" if m % 60 else f"{m // 60}h"  # noqa: E731
+    for start in range(8 * 60, 18 * 60, 30):
+        closed = "X" if 12 * 60 <= start < 13 * 60 else None
+        sh.append([f"{fmt(start)} - {fmt(start + 30)}", *[closed] * 5])
+    sh.merge_cells("D12:D21")  # mercredi 13h-18h : fermé
     for c in range(1, 7):
         sh.cell(1, c).fill, sh.cell(1, c).font = HEAD_FILL, HEAD_FONT
         sh.column_dimensions[get_column_letter(c)].width = 16
-    sh.cell(13, 1, "Grille des créneaux où l'EPS est possible. Case vide = ouvert ; « X » ou cellules fusionnées "
-                   "vides = fermé. Les heures de la première colonne donnent la durée de chaque créneau.")
+    sh.cell(23, 1, "Grille des créneaux où l'EPS est possible, au pas de 30 min. Case vide = ouvert ; « X » ou "
+                   "cellules fusionnées vides = fermé. Les heures de la première colonne donnent la durée des créneaux.")
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()

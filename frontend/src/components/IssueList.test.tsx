@@ -43,7 +43,7 @@ describe("TabIssues", () => {
     useStore.getState().updateSport(sid, { priority: true });
     expect(await screen.findByText("Dernier calcul fait avant vos modifications")).toBeInTheDocument();
     await userEvent.setup().click(screen.getByText("Relancer la génération"));
-    expect(screen.getByTestId("loc").textContent).toBe("/");
+    expect(screen.getByTestId("loc").textContent).toBe("/?run=1");
   });
 
   it("un calcul réussi efface les problèmes, remettre le résultat à null les garde", () => {

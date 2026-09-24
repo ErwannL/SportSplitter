@@ -3,8 +3,8 @@ import {
   AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Download, FileSpreadsheet, Loader2, RefreshCw,
   Send, Shuffle, Snowflake, Upload, X,
 } from "lucide-react";
-import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { textOn } from "../lib/colors";
 import { periodKey, segmentKey, translateCode, translateFix } from "../lib/i18n";
 import { usePrefs, useT } from "../prefs";
@@ -124,6 +124,16 @@ function SetupView() {
       setLoading(false);
     }
   };
+
+  // « Relancer la génération » depuis un autre onglet : /?run=1
+  const [params, setParams] = useSearchParams();
+  const started = useRef(false);
+  useEffect(() => {
+    if (params.get("run") !== "1" || started.current) return;
+    started.current = true;
+    setParams({}, { replace: true });
+    if (ready) void generate();
+  });
 
   return (
     <>

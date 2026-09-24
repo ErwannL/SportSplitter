@@ -60,12 +60,12 @@ def test_template_roundtrip():
     tt = parse_timetable(template_workbook(), "modele.xlsx")
     assert tt.file_name == "modele.xlsx"
     assert tt.days == ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"]
-    assert len(tt.rows) == 10 and all(r.minutes == 60 for r in tt.rows)
-    assert tt.rows[0].label == "8h – 9h"
-    assert all(c.closed for c in tt.cells if c.row == 4)
+    assert len(tt.rows) == 20 and all(r.minutes == 30 for r in tt.rows)
+    assert tt.rows[0].label == "8h – 8h30" and tt.rows[-1].label == "17h30 – 18h"
+    assert all(c.closed for c in tt.cells if c.row in (8, 9))
     wed = [c for c in tt.cells if c.day == 2]
-    assert len(wed) == 6 and wed[-1].closed and (wed[-1].row, wed[-1].row_span) == (5, 5)
-    assert not any(c.closed for c in tt.cells if c.day == 0 and c.row != 4)
+    assert len(wed) == 11 and wed[-1].closed and (wed[-1].row, wed[-1].row_span) == (10, 10)
+    assert not any(c.closed for c in tt.cells if c.day == 0 and c.row not in (8, 9))
 
 
 def test_parse_time_objects_offset_header_and_merges():

@@ -57,7 +57,7 @@ export function TabIssues({ types }: { types: TargetType[] }) {
           <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">{t("issues.stale")}</span>
         )}
         {solved.length > 0 && (
-          <Link to="/" className="ml-auto flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50">
+          <Link to="/?run=1" className="ml-auto flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50">
             <RefreshCw size={13} /> {t("issues.rerun")}
           </Link>
         )}

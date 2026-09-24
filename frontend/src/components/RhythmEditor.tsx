@@ -3,7 +3,7 @@ import { Minus, Plus, X } from "lucide-react";
 import { useT } from "../prefs";
 import { IconButton } from "./ui";
 
-export const DURATIONS = [30, 45, 60, 90, 120, 150, 180, 210, 240];
+export const DURATIONS = [30, 60, 90, 120, 150, 180, 210, 240];
 
 export const RHYTHM_PRESETS: { label: string; cycle: number[][] }[] = [
   { label: "1h", cycle: [[60]] },
