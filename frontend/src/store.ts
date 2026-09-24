@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { api } from "./lib/api";
 import { placeColor } from "./lib/colors";
-import { norm, timetableLevels } from "./lib/readiness";
+import { norm } from "./lib/readiness";
 import type { Issue, Level, Place, Settings, SolveResult, Sport, Timetable, Workspace } from "./types";
 
 export const LEVEL_PRESETS: Record<string, string[]> = {
@@ -20,6 +20,9 @@ export const defaultSettings = (): Settings => ({
   priorityRequired: true,
   barretteMinGroups: 2,
   allowRepeat: true,
+  sameDayAllowed: false,
+  separatePlacesRule: "hard",
+  maxSeparateViolations: 1,
   maxSolutions: 200,
   timeLimit: 20,
 });
@@ -36,6 +39,7 @@ export const emptyWorkspace = (): Workspace => ({
 export const hydrate = (ws: Partial<Workspace>): Workspace => ({
   ...emptyWorkspace(),
   ...ws,
+  levels: (ws.levels ?? []).map((l) => ({ ...l, groups: l.groups ?? 1, cycle: l.cycle ?? [[120]] })),
   settings: { ...defaultSettings(), ...ws.settings },
 });
 
@@ -120,7 +124,7 @@ export const useStore = create<State>((set, get) => {
       const id = newId("lvl");
       mutate((ws) => ({
         ...ws,
-        levels: [...ws.levels, { id, name: name ?? `Niveau ${ws.levels.length + 1}`, mode: "trimestre", sportIds: [] }],
+        levels: [...ws.levels, { id, name: name ?? `Niveau ${ws.levels.length + 1}`, mode: "trimestre", sportIds: [], groups: 1, cycle: [[120]] }],
       }));
       return id;
     },
@@ -130,7 +134,7 @@ export const useStore = create<State>((set, get) => {
         const known = new Set(ws.levels.map((l) => norm(l.name)));
         const extra = names
           .filter((n) => !known.has(norm(n)))
-          .map((name): Level => ({ id: newId("lvl"), name, mode: "trimestre", sportIds: [] }));
+          .map((name): Level => ({ id: newId("lvl"), name, mode: "trimestre", sportIds: [], groups: 1, cycle: [[120]] }));
         return { ...ws, levels: [...ws.levels, ...extra] };
       });
     },
@@ -202,8 +206,3 @@ export const useStore = create<State>((set, get) => {
     reset: () => mutate(() => emptyWorkspace()),
   };
 });
-
-export const missingLevels = (ws: Workspace) => {
-  const known = new Set(ws.levels.map((l) => norm(l.name)));
-  return timetableLevels(ws).filter((n) => !known.has(norm(n)));
-};

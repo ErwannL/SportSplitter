@@ -44,6 +44,29 @@ def parse_time_label(value) -> TimeRow:
     return TimeRow(label=label, start=start, end=end)
 
 
+_CLOCK = re.compile(r"^(\d{1,2})\s*(?:[hH:]\s*(\d{1,2})?)?(?::\d{2})?$")
+
+
+def to_minutes(text: str) -> int | None:
+    """« 8h », « 8h30 », « 08:30 », « 8 » -> minutes depuis minuit."""
+    m = _CLOCK.match(text.strip())
+    if not m:
+        return None
+    h, mn = int(m.group(1)), int(m.group(2) or 0)
+    return h * 60 + mn if h < 24 and mn < 60 else None
+
+
+def fill_durations(rows: list[TimeRow]) -> None:
+    """Complète la fin manquante par le début de la ligne suivante et calcule la durée."""
+    for i, row in enumerate(rows):
+        if not row.end and i + 1 < len(rows):
+            row.end = rows[i + 1].start
+        start, end = to_minutes(row.start), to_minutes(row.end)
+        row.minutes = end - start if start is not None and end is not None and end > start else 0
+        if row.end and row.label == row.start:
+            row.label = f"{row.start} – {row.end}"
+
+
 def parse_entries(text: str) -> list[Entry]:
     counts: OrderedDict[str, int] = OrderedDict()
     display: dict[str, str] = {}
@@ -101,6 +124,7 @@ def parse_timetable(data: bytes, file_name: str = "") -> Timetable:
     if not rows:
         raise TimetableError("Aucun créneau horaire trouvé dans la première colonne.")
 
+    fill_durations(rows)
     merged: dict[tuple[int, int], tuple[int, int, int]] = {}  # (r,c) -> (top, left, bottom)
     for rng in ws.merged_cells.ranges:
         for r in range(rng.min_row, rng.max_row + 1):
@@ -139,10 +163,10 @@ def parse_timetable(data: bytes, file_name: str = "") -> Timetable:
 
 LABELS = {
     "fr": {"hours": "Heures", "level": "Niveau", "mode": "Organisation", "broken": "Règles non respectées",
-           "summary": "Récapitulatif", "solution": "Solution", "trimestre": "Trimestre", "semestre": "Semestre",
+           "summary": "Récapitulatif", "solution": "Solution", "week": "Semaine", "trimestre": "Trimestre", "semestre": "Semestre",
            "Q1": "Sept - Nov", "Q2": "Déc - Janv", "Q3": "Févr - Mars", "Q4": "Avr - Juin"},
     "en": {"hours": "Hours", "level": "Level", "mode": "Organisation", "broken": "Broken rules",
-           "summary": "Summary", "solution": "Solution", "trimestre": "Term", "semestre": "Semester",
+           "summary": "Summary", "solution": "Solution", "week": "Week", "trimestre": "Term", "semestre": "Semester",
            "Q1": "Sep - Nov", "Q2": "Dec - Jan", "Q3": "Feb - Mar", "Q4": "Apr - Jun"},
 }
 
@@ -165,27 +189,30 @@ def _text_color(color: str) -> str:
     return "000000" if (0.299 * r + 0.587 * g + 0.114 * b) > 150 else "FFFFFF"
 
 
-def cell_contents(ws: Workspace, sol: Solution, segment: str) -> dict[str, list[tuple[str, str]]]:
-    """slotId -> [(texte, couleur du lieu)] pour un segment de l'année."""
+def cell_contents(ws: Workspace, sol: Solution, segment: str, week: int = 0) -> dict[tuple[int, int], list]:
+    """(jour, ligne) -> [(texte, couleur du lieu)] pour un segment de l'année et une semaine du cycle commun."""
     levels = {lv.id: lv for lv in ws.levels}
     sports = {s.id: s for s in ws.sports}
     places = {p.id: p for p in ws.places}
-    out: dict[str, list[tuple[str, str]]] = {}
+    out: dict[tuple[int, int], list[tuple[str, str]]] = {}
     for a in sol.assignments:
-        if segment not in PERIODS[a.period]:
+        lv = levels[a.level_id]
+        if segment not in PERIODS[a.period] or week % len(lv.cycle) != a.week:
             continue
         for pl in a.placements:
             place = places[pl.place_id]
             grp = f" ×{pl.groups}" if pl.groups > 1 else ""
-            txt = f"{levels[a.level_id].name}{grp} · {sports[a.sport_id].name} · {place.name}"
-            out.setdefault(a.slot_id, []).append((txt, place.color))
+            txt = f"{lv.name}{grp} · {sports[a.sport_id].name} · {place.name}"
+            for r in range(a.row, a.row + a.span):
+                out.setdefault((a.day, r), []).append((txt, place.color))
     return out
 
 
-def _write_grid(sheet, ws: Workspace, sol: Solution, segment: str, top: int, lang: str = "fr") -> int:
+def _write_grid(sheet, ws: Workspace, sol: Solution, segment: str, top: int, lang: str = "fr", week: int = 0) -> int:
     tt = ws.timetable
     L = LABELS[lang]
-    sheet.cell(top, 1, L[segment]).font = Font(bold=True, size=13)
+    title = L[segment] if sol.weeks == 1 else f"{L[segment]} · {L['week']} {chr(65 + week)}"
+    sheet.cell(top, 1, title).font = Font(bold=True, size=13)
     top += 1
     sheet.cell(top, 1, L["hours"])
     for d, day in enumerate(tt.days):
@@ -196,15 +223,15 @@ def _write_grid(sheet, ws: Workspace, sol: Solution, segment: str, top: int, lan
     for i, row in enumerate(tt.rows):
         c = sheet.cell(top + 1 + i, 1, row.label)
         c.border, c.alignment, c.font = BORDER, WRAP, Font(bold=True)
-        sheet.row_dimensions[top + 1 + i].height = 60
-    contents = cell_contents(ws, sol, segment)
+        sheet.row_dimensions[top + 1 + i].height = 45
+    contents = cell_contents(ws, sol, segment, week)
     for cell in tt.cells:
         r, col = top + 1 + cell.row, cell.day + 2
         if cell.row_span > 1:
             sheet.merge_cells(start_row=r, start_column=col, end_row=r + cell.row_span - 1, end_column=col)
         target = sheet.cell(r, col)
         target.border, target.alignment = BORDER, WRAP
-        items = contents.get(cell.slot_id, [])
+        items = contents.get((cell.day, cell.row), [])
         if cell.closed:
             target.fill = CLOSED_FILL
         elif items:
@@ -262,14 +289,17 @@ def export_solutions(ws: Workspace, sols: list[Solution], lang: str = "fr") -> b
         _widths(s, 3)
         for seg in SEGMENTS:
             sh = wb.create_sheet(L[seg])
-            _write_grid(sh, ws, sol, seg, 1, lang)
+            top = 1
+            for week in range(sol.weeks):
+                top = _write_grid(sh, ws, sol, seg, top, lang, week)
             _widths(sh, n)
     else:
         for sol in sols:
             sh = wb.create_sheet(f"{L['solution']} {sol.index + 1}")
             top = _write_summary(sh, ws, sol, lang=lang)
             for seg in SEGMENTS:
-                top = _write_grid(sh, ws, sol, seg, top, lang)
+                for week in range(sol.weeks):
+                    top = _write_grid(sh, ws, sol, seg, top, lang, week)
             _widths(sh, n)
     buf = io.BytesIO()
     wb.save(buf)
@@ -277,24 +307,21 @@ def export_solutions(ws: Workspace, sols: list[Solution], lang: str = "fr") -> b
 
 
 def template_workbook() -> bytes:
+    """Grille vide : créneaux d'une heure, pause de midi et mercredi après-midi fermés."""
     wb = Workbook()
     sh = wb.active
     sh.title = "Emploi du temps"
     days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"]
-    hours = ["8h - 10h", "10h - 12h", "12h - 14h", "14h - 16h", "16h - 18h"]
     sh.append(["Heures", *days])
-    sample = {
-        (0, 0): "6eme", (0, 1): "5eme", (0, 3): "4eme x2", (1, 2): "3eme",
-        (1, 4): "6eme", (3, 0): "5eme, 3eme", (3, 1): "4eme x2", (4, 3): "3eme",
-    }
-    for r, h in enumerate(hours):
-        sh.append([h, *[sample.get((r, d), None) for d in range(5)]])
-    sh.merge_cells("D5:D6")  # mercredi après-midi : pas de cours
+    for h in range(8, 18):
+        closed = "X" if h == 12 else None
+        sh.append([f"{h}h - {h + 1}h", *[closed] * 5])
+    sh.merge_cells("D7:D11")  # mercredi 13h-18h : fermé
     for c in range(1, 7):
         sh.cell(1, c).fill, sh.cell(1, c).font = HEAD_FILL, HEAD_FONT
         sh.column_dimensions[get_column_letter(c)].width = 16
-    sh.cell(8, 1, "Écrivez dans chaque case les niveaux qui ont EPS sur ce créneau. "
-                  "« 4eme x2 » = deux classes de 4eme en même temps. Cellules fusionnées vides = fermé.")
+    sh.cell(13, 1, "Grille des créneaux où l'EPS est possible. Case vide = ouvert ; « X » ou cellules fusionnées "
+                   "vides = fermé. Les heures de la première colonne donnent la durée de chaque créneau.")
     buf = io.BytesIO()
     wb.save(buf)
     return buf.getvalue()

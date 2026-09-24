@@ -27,7 +27,7 @@ describe("api", () => {
     Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke });
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
     mockFetch(async () => jsonRes({}));
-    const sol = { index: 2, plan: {}, assignments: [], violations: [] };
+    const sol = { index: 2, plan: {}, weeks: 1, assignments: [], violations: [] };
     await api.exportSolutions(readyWs(), [sol]);
     expect((click.mock.contexts[0] as HTMLAnchorElement).download).toBe("planning-3.xlsx");
     await api.exportSolutions(readyWs(), [sol, sol], "en");

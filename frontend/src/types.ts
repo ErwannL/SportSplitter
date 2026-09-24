@@ -6,6 +6,7 @@ export interface TimeRow {
   label: string;
   start: string;
   end: string;
+  minutes: number;
 }
 
 export interface Entry {
@@ -33,6 +34,10 @@ export interface Level {
   name: string;
   mode: Mode;
   sportIds: string[];
+  /** classes du niveau qui ont EPS en même temps */
+  groups: number;
+  /** rythme : une liste par semaine du cycle (1 à 4), durées des séances en minutes */
+  cycle: number[][];
 }
 
 export interface Sport {
@@ -59,6 +64,9 @@ export interface Settings {
   priorityRequired: boolean;
   barretteMinGroups: number;
   allowRepeat: boolean;
+  sameDayAllowed: boolean;
+  separatePlacesRule: "soft" | "hard" | "off";
+  maxSeparateViolations: number;
   maxSolutions: number;
   timeLimit: number;
 }
@@ -90,6 +98,12 @@ export interface Assignment {
   period: Period;
   sportId: string;
   placements: Placement[];
+  session: number;
+  week: number;
+  day: number;
+  row: number;
+  span: number;
+  minutes: number;
 }
 
 export interface Violation {
@@ -104,6 +118,7 @@ export interface Violation {
 export interface Solution {
   index: number;
   plan: Record<string, Partial<Record<Period, string>>>;
+  weeks: number;
   assignments: Assignment[];
   violations: Violation[];
 }

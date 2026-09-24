@@ -1,10 +1,10 @@
-import { AlertTriangle, GraduationCap, Sparkles } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import type { Key } from "../lib/i18n";
 import { MODE_PERIODS } from "../lib/periods";
-import { norm, timetableLevels } from "../lib/readiness";
 import { TabIssues } from "../components/IssueList";
 import { useT } from "../prefs";
-import { LEVEL_PRESETS, missingLevels, useStore } from "../store";
+import { RhythmEditor, Stepper } from "../components/RhythmEditor";
+import { LEVEL_PRESETS, useStore } from "../store";
 import { AddColumn, AddPicker, Board, Button, Chip, Column, EmptyState, PageHeader, SectionLabel, Segmented } from "../components/ui";
 import type { Mode } from "../types";
 
@@ -12,8 +12,6 @@ export function ClassesPage() {
   const t = useT();
   const s = useStore();
   const { ws } = s;
-  const missing = missingLevels(ws);
-  const used = new Set(timetableLevels(ws).map(norm));
 
   return (
     <>
@@ -28,18 +26,6 @@ export function ClassesPage() {
         ))}
       />
       <TabIssues types={["level"]} />
-
-      {missing.length > 0 && (
-        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <AlertTriangle size={18} />
-          <span className="flex-1">
-            {t("classes.missing")} <b>{missing.join(", ")}</b>
-          </span>
-          <Button size="sm" variant="primary" onClick={() => s.addLevels(missing)}>
-            <Sparkles size={14} /> {t("classes.createThem")}
-          </Button>
-        </div>
-      )}
 
       {ws.levels.length === 0 ? (
         <EmptyState
@@ -59,13 +45,6 @@ export function ClassesPage() {
                 title={lv.name}
                 onRename={(name) => s.updateLevel(lv.id, { name })}
                 onDelete={() => s.removeLevel(lv.id)}
-                badge={
-                  !used.has(norm(lv.name)) && ws.timetable ? (
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500" title={t("classes.unusedHint")}>
-                      {t("classes.unused")}
-                    </span>
-                  ) : undefined
-                }
               >
                 <Segmented<Mode>
                   value={lv.mode}
@@ -75,6 +54,12 @@ export function ClassesPage() {
                     { value: "semestre", label: t("mode.semestre") },
                   ]}
                 />
+                <SectionLabel>{t("classes.rhythm")}</SectionLabel>
+                <RhythmEditor cycle={lv.cycle} onChange={(cycle) => s.updateLevel(lv.id, { cycle })} />
+                <div className="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-1" title={t("classes.groupsHint")}>
+                  <span className="text-sm text-slate-700">{t("classes.groups")}</span>
+                  <Stepper value={lv.groups} min={1} max={20} label={t("classes.groupsHint")} onChange={(groups) => s.updateLevel(lv.id, { groups })} />
+                </div>
                 <div className="flex items-center justify-between">
                   <SectionLabel>{t("classes.sports")}</SectionLabel>
                   <span className="text-xs text-slate-400">

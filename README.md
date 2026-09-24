@@ -21,12 +21,17 @@ make test          # pytest + vitest
 
 ## Parcours
 
-1. **Planning** : import de l'emploi du temps Excel (un modèle est téléchargeable dans l'appli).
-2. **Classes** : niveaux libres (6e, Terminale, L1… ou n'importe quel nom), en trimestre ou semestre, avec leurs sports.
-3. **Sports** : *prioritaire* (toujours placé), *barrette* (2 classes du même niveau ensemble dans un lieu) et lieux possibles.
+Les professeurs d'EPS indiquent quand l'EPS est possible ; SportsSplitter construit l'emploi du temps des classes.
+
+1. **Planning** : import de la grille vide des créneaux (Excel). Cliquez sur une case pour l'ouvrir ou la fermer.
+2. **Classes** : niveaux libres (6e, Terminale, L1… ou n'importe quel nom), avec :
+   * un **rythme** sur 1 à 4 semaines, par exemple 1h par semaine, 2×2h30, 2h puis 4h en alternance, ou 4×1h / 2×1h30 / rien ;
+   * le nombre de **classes en même temps** ;
+   * le fonctionnement par trimestre ou semestre, et les sports.
+3. **Sports** : *prioritaire* (toujours placé), *barrette* (les classes simultanées du niveau ensemble dans un lieu) et lieux possibles.
 4. **Lieux** : couleur, extérieur ou non, capacité (nombre de classes en même temps), disponibilités peintes sur la grille par période.
 5. Le bouton **Générer** se débloque quand tout est configuré.
-6. Le solveur énumère les plannings valides (200 au maximum par défaut). Si aucun n'existe, il propose les meilleurs compromis et indique la règle non respectée. Vous pouvez parcourir les solutions puis télécharger la meilleure, celle affichée ou toutes (Excel).
+6. L'algorithme **place les séances** dans la grille (même créneau toute l'année), choisit le sport de chaque période et le lieu de chaque séance. Il énumère les solutions (200 au maximum par défaut). Si aucune n'existe, il propose les meilleurs compromis et indique la règle non respectée. Vous pouvez parcourir les solutions, semaine par semaine du cycle, puis télécharger la meilleure, celle affichée ou toutes (Excel).
 
 ## Interface
 
@@ -47,14 +52,14 @@ En développement, tout le monde est administrateur. Le rôle est donné par `SP
 
 ## Format Excel attendu
 
-| Heures    | Lundi | Mardi   | Mercredi | … |
-|-----------|-------|---------|----------|---|
-| 8h - 10h  | 6eme  | 4eme x2 |          |   |
-| 10h - 12h |       | 5eme, 3eme |       |   |
+| Heures   | Lundi | Mardi | Mercredi | … |
+|----------|-------|-------|----------|---|
+| 8h - 9h  |       |       |          |   |
+| 9h - 10h |       | X     |          |   |
 
-* Première colonne : créneaux. Première ligne : jours.
-* Dans une case : les niveaux qui ont EPS. `4eme x2` = deux classes de 4eme en même temps.
-* Une cellule fusionnée vide, ou contenant `X` ou `fermé`, est un créneau fermé (par exemple le mercredi après-midi).
+* Première ligne : jours. Première colonne : créneaux avec heure de début et de fin (`8h - 9h`, `8h30 - 10h`, `08:00-09:00`), qui donnent la durée de chaque créneau.
+* Une séance occupe des créneaux contigus d'un même jour dont la durée totale vaut la durée de la séance. Pour des séances de 1h30, utilisez des créneaux de 30 min ou de 1h30.
+* Une case vide est ouverte. Une case marquée `X` ou `fermé`, ou une cellule fusionnée vide, est fermée.
 
 ## Modèle de l'année
 
@@ -64,11 +69,14 @@ L'année est découpée en 4 segments : Sept–Nov (T1), Déc–Janv (T2/S1), F�
 
 | Règle | Type |
 |---|---|
+| Séances placées sur des créneaux ouverts contigus de la bonne durée, même créneau toute l'année | stricte |
+| Séances d'un niveau dans une même semaine : sans chevauchement, sur des jours différents | réglable |
+| Classes simultanées d'un niveau hors barrette dans des lieux différents | réglable : obligatoire, souhaité (écarts limités) ou libre |
 | Un sport par période et par niveau ; chaque sport au plus une fois (au moins une fois s'il y a moins de sports que de périodes) | stricte |
 | Sport prioritaire toujours placé | stricte |
 | Lieu compatible avec le sport, disponible sur toute la période | stricte |
-| Capacité du lieu sur chaque créneau et chaque segment | stricte |
-| Barrette : au moins 2 classes du niveau, toutes dans le même lieu | stricte |
+| Capacité du lieu sur chaque créneau, chaque segment et chaque semaine réelle du cycle commun | stricte |
+| Barrette : au moins 2 classes simultanées, toutes dans le même lieu | stricte |
 | Pas de lieu extérieur en hiver | réglable : souple (écarts limités, 1 par défaut), stricte ou ignorée |
 
 ## Structure

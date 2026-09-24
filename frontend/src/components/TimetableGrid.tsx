@@ -10,12 +10,23 @@ interface Props {
   cellClassName?: (cell: Cell, id: string) => string | undefined;
   onCellPointerDown?: (cell: Cell, id: string) => void;
   onCellPointerEnter?: (cell: Cell, id: string) => void;
+  /** clic sur une case fermée (pour la rouvrir) */
+  onClosedPointerDown?: (cell: Cell, id: string) => void;
   compact?: boolean;
   dim?: boolean;
 }
 
 /** Grille hebdomadaire générique (heures × jours) avec cellules fusionnées. */
-export function TimetableGrid({ timetable, renderCell, cellClassName, onCellPointerDown, onCellPointerEnter, compact, dim }: Props) {
+export function TimetableGrid({
+  timetable,
+  renderCell,
+  cellClassName,
+  onCellPointerDown,
+  onCellPointerEnter,
+  onClosedPointerDown,
+  compact,
+  dim,
+}: Props) {
   const t = useT();
   const rowH = compact ? "minmax(2.75rem, auto)" : "minmax(5rem, auto)";
   return (
@@ -50,7 +61,11 @@ export function TimetableGrid({ timetable, renderCell, cellClassName, onCellPoin
               c.closed ? "closed-slot" : "bg-white",
               cellClassName?.(c, id),
             )}
-            onPointerDown={onCellPointerDown && !c.closed ? () => onCellPointerDown(c, id) : undefined}
+            onPointerDown={
+              c.closed
+                ? onClosedPointerDown && (() => onClosedPointerDown(c, id))
+                : onCellPointerDown && (() => onCellPointerDown(c, id))
+            }
             onPointerEnter={onCellPointerEnter && !c.closed ? () => onCellPointerEnter(c, id) : undefined}
           >
             {renderCell(c, id)}

@@ -26,7 +26,7 @@ describe("StepGuide", () => {
     const ws = readyWs();
     ws.levels = [];
     ws.places[0].availability = {};
-    ws.levels = [{ id: "x", name: "6e", mode: "trimestre", sportIds: [] }];
+    ws.levels = [{ id: "x", name: "6e", mode: "trimestre", sportIds: [], groups: 1, cycle: [[60]] }];
     setWs({ ...ws });
     renderAt(<StepGuide />, "/");
     expect(next()).toHaveTextContent("Classes");
@@ -46,7 +46,7 @@ describe("StepGuide", () => {
   });
   it("masqué sur le planning avec des solutions", () => {
     setWs(readyWs());
-    useStore.setState({ result: { status: "ok", solutions: [{ index: 0, plan: {}, assignments: [], violations: [] }], totalFound: 1, truncated: false, issues: [] } });
+    useStore.setState({ result: { status: "ok", solutions: [{ index: 0, plan: {}, weeks: 1, assignments: [], violations: [] }], totalFound: 1, truncated: false, issues: [] } });
     renderAt(<StepGuide />, "/");
     expect(screen.queryByRole("list")).toBeNull();
   });

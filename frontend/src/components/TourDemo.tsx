@@ -158,8 +158,8 @@ function Scene({ scene, f }: { scene: number; f: number }) {
                 <span className="flex h-full w-full items-center justify-center rounded text-on" style={{ background: COLORS[i % 4] }}>
                   {LEVELS[i % 4]}
                 </span>
-              ) : i % 3 === 0 && (scene > 0 || i < (f - 2) * 5) ? (
-                <span className="rounded bg-indigo-50 px-1 text-indigo-700">{LEVELS[i % 4]}</span>
+              ) : (i === 7 || i === 12) && (scene > 0 || f >= 4) ? (
+                <span className="closed-slot h-full w-full rounded" />
               ) : null
             }
           />

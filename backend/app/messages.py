@@ -30,6 +30,17 @@ FR: dict[str, str] = {
                      "au-delà de la limite autorisée ({max})."),
     "relaxed": "Aucun planning parfait : meilleure solution avec {count} règle(s) d'hiver non respectée(s).",
     "winter_outdoor": "« {level} » utilise un lieu extérieur ({place}) pendant l'hiver ({period}).",
+    "duration_impossible": ("« {level} » a une séance de {duration} mais aucune suite de créneaux ouverts "
+                            "de cette durée n'existe dans la grille."),
+    "too_many_sessions": "« {level} » a {count} séances dans une semaine pour seulement {days} jours.",
+    "separate_limit": ("Le meilleur planning met {count} fois des classes d'un même niveau dans le même lieu, "
+                       "au-delà de la limite autorisée ({max})."),
+    "same_place": "Plusieurs classes de « {level} » partagent « {place} » ({period}).",
+    "separate_impossible": ("« {sport} » n'a pas assez de lieux pour séparer les {count} classes de « {level} » "
+                            "(hors barrette, chaque classe doit être dans un lieu différent)."),
+    "no_level": "Aucun niveau n'est configuré.",
+    "level_no_session": "Le niveau « {level} » n'a aucune séance dans son rythme.",
+    "row_no_duration": "Le créneau « {row} » n'a pas d'heure de début et de fin lisible.",
 }
 
 EN: dict[str, str] = {
@@ -54,6 +65,17 @@ EN: dict[str, str] = {
                      "above the allowed limit ({max})."),
     "relaxed": "No perfect planning: best solution breaks the winter rule {count} time(s).",
     "winter_outdoor": "“{level}” uses an outdoor place ({place}) during winter ({period}).",
+    "duration_impossible": ("“{level}” has a {duration} session but no run of open slots of that length "
+                            "exists in the grid."),
+    "too_many_sessions": "“{level}” has {count} sessions in one week for only {days} days.",
+    "separate_limit": ("The best planning puts classes of the same level in the same place {count} time(s), "
+                       "above the allowed limit ({max})."),
+    "same_place": "Several classes of “{level}” share “{place}” ({period}).",
+    "separate_impossible": ("“{sport}” does not have enough places to split the {count} classes of “{level}” "
+                            "(unless paired, each class must be in a different place)."),
+    "no_level": "No level is set up.",
+    "level_no_session": "Level “{level}” has no session in its rhythm.",
+    "row_no_duration": "Slot “{row}” has no readable start and end time.",
 }
 
 PERIODS_I18N = {

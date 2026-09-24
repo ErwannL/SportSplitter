@@ -143,6 +143,26 @@ export function AdminPage() {
           <Field label={t("admin.allowRepeat")}>
             <Switch label={t("admin.allowRepeat")} checked={settings.allowRepeat} disabled={!editable} onChange={(allowRepeat) => set({ allowRepeat })} />
           </Field>
+          <Field label={t("admin.sameDay")} hint={t("admin.sameDayHint")}>
+            <Switch label={t("admin.sameDay")} checked={settings.sameDayAllowed} disabled={!editable} onChange={(sameDayAllowed) => set({ sameDayAllowed })} />
+          </Field>
+          <div>
+            <div className="mb-2 text-sm font-medium text-slate-700">{t("admin.separate")}</div>
+            <Segmented
+              value={settings.separatePlacesRule}
+              onChange={(separatePlacesRule) => set({ separatePlacesRule })}
+              options={[
+                { value: "hard", label: t("admin.separate.hard") },
+                { value: "soft", label: t("admin.separate.soft") },
+                { value: "off", label: t("admin.separate.off") },
+              ]}
+            />
+          </div>
+          {settings.separatePlacesRule === "soft" && (
+            <Field label={t("admin.maxSeparate")}>
+              <NumberInput value={settings.maxSeparateViolations} min={0} max={50} disabled={!editable} onChange={(maxSeparateViolations) => set({ maxSeparateViolations })} />
+            </Field>
+          )}
           <Field label={t("admin.barretteMin")}>
             <NumberInput value={settings.barretteMinGroups} min={2} max={10} disabled={!editable} onChange={(barretteMinGroups) => set({ barretteMinGroups })} />
           </Field>

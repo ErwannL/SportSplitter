@@ -12,16 +12,6 @@ export const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
 
 export const slotId = (day: number, row: number) => `${day}-${row}`;
 
-/** Noms de niveaux cités dans l'emploi du temps (casse d'origine, sans doublon). */
-export function timetableLevels(ws: Workspace): string[] {
-  const seen = new Map<string, string>();
-  for (const c of ws.timetable?.cells ?? []) {
-    if (c.closed) continue;
-    for (const e of c.entries) if (!seen.has(norm(e.level))) seen.set(norm(e.level), e.level);
-  }
-  return [...seen.values()];
-}
-
 export interface StepStatus {
   timetable: boolean;
   levels: boolean;
@@ -35,20 +25,19 @@ export function readiness(ws: Workspace): StepStatus {
   const hasTT = !!ws.timetable;
   if (!hasTT) problems.push({ key: "ready.timetable", params: {}, targetType: "timetable" });
 
-  const known = new Map(ws.levels.map((l) => [norm(l.name), l]));
-  const ttLevels = timetableLevels(ws);
-  const missing = ttLevels.filter((n) => !known.has(norm(n)));
-  missing.forEach((n) => problems.push({ key: "ready.missingLevel", params: { level: n }, targetType: "level" }));
-
-  const used = ttLevels.map((n) => known.get(norm(n))).filter((l) => !!l);
+  if (!ws.levels.length) problems.push({ key: "ready.noLevel", params: {}, targetType: "level" });
   const sports = new Map(ws.sports.map((s) => [s.id, s]));
-  const noSport = used.filter((l) => !l.sportIds.some((id) => sports.has(id)));
+  const noSession = ws.levels.filter((l) => !l.cycle.some((w) => w.length > 0));
+  noSession.forEach((l) =>
+    problems.push({ key: "ready.noSession", params: { level: l.name }, target: l.id, targetType: "level" }),
+  );
+  const noSport = ws.levels.filter((l) => !l.sportIds.some((id) => sports.has(id)));
   noSport.forEach((l) =>
     problems.push({ key: "ready.noSport", params: { level: l.name }, target: l.id, targetType: "level" }),
   );
-  const levelsOk = hasTT && ttLevels.length > 0 && missing.length === 0 && noSport.length === 0;
+  const levelsOk = ws.levels.length > 0 && noSession.length === 0 && noSport.length === 0;
 
-  const usedSports = new Set(used.flatMap((l) => l.sportIds).filter((id) => sports.has(id)));
+  const usedSports = new Set(ws.levels.flatMap((l) => l.sportIds).filter((id) => sports.has(id)));
   const places = new Set(ws.places.map((p) => p.id));
   const noPlace = [...usedSports].map((id) => sports.get(id)!).filter((s) => !s.placeIds.some((p) => places.has(p)));
   noPlace.forEach((s) =>

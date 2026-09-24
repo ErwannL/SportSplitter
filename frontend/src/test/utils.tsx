@@ -34,8 +34,8 @@ export const readyWs = (): Workspace => ({
   timetable: {
     days: ["Lundi", "Mardi"],
     rows: [
-      { label: "M1", start: "8h", end: "10h" },
-      { label: "M2", start: "", end: "" },
+      { label: "M1", start: "8h", end: "10h", minutes: 120 },
+      { label: "M2", start: "", end: "", minutes: 60 },
     ],
     cells: [
       { day: 0, row: 0, rowSpan: 1, closed: false, entries: [{ level: "6e", groups: 2 }] },
@@ -45,8 +45,8 @@ export const readyWs = (): Workspace => ({
     fileName: "edt.xlsx",
   },
   levels: [
-    { id: "l6", name: "6e", mode: "trimestre", sportIds: ["s1"] },
-    { id: "l5", name: "5e", mode: "semestre", sportIds: ["s1"] },
+    { id: "l6", name: "6e", mode: "trimestre", sportIds: ["s1"], groups: 2, cycle: [[120]] },
+    { id: "l5", name: "5e", mode: "semestre", sportIds: ["s1"], groups: 1, cycle: [[60], [120]] },
   ],
   sports: [{ id: "s1", name: "Foot", priority: true, barrette: false, placeIds: ["p1"] }],
   places: [

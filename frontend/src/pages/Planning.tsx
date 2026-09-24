@@ -13,9 +13,9 @@ import { TimetableGrid } from "../components/TimetableGrid";
 import { Button, IconButton, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { MODE_PERIODS, PERIODS, SEGMENT_HINT, SEGMENTS } from "../lib/periods";
-import { isReady, norm, readiness, targetLink } from "../lib/readiness";
+import { isReady, readiness, targetLink } from "../lib/readiness";
 import { useStore } from "../store";
-import type { Segment, Solution, Workspace } from "../types";
+import type { Cell, Segment, Solution, Workspace } from "../types";
 
 export function PlanningPage() {
   const { ws, result } = useStore();
@@ -107,7 +107,11 @@ function SetupView() {
   const imp = useImport();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const known = new Set(ws.levels.map((l) => norm(l.name)));
+  const toggle = (cell: Cell) =>
+    setTimetable({
+      ...ws.timetable!,
+      cells: ws.timetable!.cells.map((c) => (c.day === cell.day && c.row === cell.row ? { ...c, closed: !c.closed } : c)),
+    });
 
   const generate = async () => {
     setLoading(true);
@@ -149,23 +153,16 @@ function SetupView() {
           <TimetableGrid
             timetable={ws.timetable!}
             dim={loading}
-            renderCell={(c) => (
-              <div className="flex flex-wrap content-start gap-1 p-2">
-                {c.entries.map((e) => (
-                  <span
-                    key={e.level}
-                    className={clsx(
-                      "rounded-lg px-2 py-0.5 text-xs font-medium",
-                      known.has(norm(e.level)) ? "bg-indigo-50 text-indigo-700" : "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-                    )}
-                  >
-                    {e.level}
-                    {e.groups > 1 && <span className="opacity-60"> ×{e.groups}</span>}
-                  </span>
-                ))}
-              </div>
-            )}
+            cellClassName={(c) => (c.closed ? "cursor-pointer" : "cursor-pointer hover:bg-indigo-50/60")}
+            onCellPointerDown={toggle}
+            onClosedPointerDown={toggle}
+            renderCell={(c) =>
+              c.closed ? (
+                <span className="flex h-full items-center justify-center text-[11px] font-medium uppercase tracking-wider text-slate-400">{t("planning.closed")}</span>
+              ) : null
+            }
           />
+          <p className="mt-2 text-xs text-slate-500">{t("planning.gridHint")}</p>
           {loading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
               <Loader2 size={72} className="animate-spin text-indigo-600" strokeWidth={1.5} />
@@ -244,25 +241,45 @@ function SetupView() {
   );
 }
 
-function slotContents(ws: Workspace, sol: Solution, seg: Segment) {
+interface SlotItem {
+  level: string;
+  sport: string;
+  place: string;
+  color: string;
+  groups: number;
+  outdoor: boolean;
+  first: boolean;
+  time: string;
+}
+
+/** Contenu de chaque case (jour-ligne) pour un segment de l'année et une semaine du cycle commun. */
+export function slotContents(ws: Workspace, sol: Solution, seg: Segment, week: number) {
   const sports = new Map(ws.sports.map((s) => [s.id, s]));
   const places = new Map(ws.places.map((p) => [p.id, p]));
   const levels = new Map(ws.levels.map((l) => [l.id, l]));
-  const bySlot = new Map<string, { level: string; sport: string; place: string; color: string; groups: number; outdoor: boolean }[]>();
+  const rows = ws.timetable!.rows;
+  const bySlot = new Map<string, SlotItem[]>();
   for (const a of sol.assignments) {
-    if (!PERIODS[a.period].includes(seg)) continue;
+    const lv = levels.get(a.levelId);
+    if (!lv || !PERIODS[a.period].includes(seg) || week % lv.cycle.length !== a.week) continue;
+    const time = `${rows[a.row]?.start ?? ""} – ${rows[a.row + a.span - 1]?.end ?? ""}`;
     for (const p of a.placements) {
-      const pl = places.get(p.placeId)!;
-      const list = bySlot.get(a.slotId) ?? [];
-      list.push({
-        level: levels.get(a.levelId)?.name ?? "?",
-        sport: sports.get(a.sportId)?.name ?? "?",
-        place: pl?.name ?? "?",
-        color: pl?.color ?? "#94a3b8",
-        groups: p.groups,
-        outdoor: !!pl?.outdoor,
-      });
-      bySlot.set(a.slotId, list);
+      const pl = places.get(p.placeId);
+      for (let r = a.row; r < a.row + a.span; r++) {
+        const id = `${a.day}-${r}`;
+        const list = bySlot.get(id) ?? [];
+        list.push({
+          level: lv.name,
+          sport: sports.get(a.sportId)?.name ?? "?",
+          place: pl?.name ?? "?",
+          color: pl?.color ?? "#94a3b8",
+          groups: p.groups,
+          outdoor: !!pl?.outdoor,
+          first: r === a.row,
+          time,
+        });
+        bySlot.set(id, list);
+      }
     }
   }
   return bySlot;
@@ -274,11 +291,12 @@ function ResultView() {
   const { ws, result, setResult } = useStore();
   const [idx, setIdx] = useState(0);
   const [seg, setSeg] = useState<Segment>("Q1");
+  const [week, setWeek] = useState(0);
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
   const sols = result!.solutions;
   const sol = sols[Math.min(idx, sols.length - 1)];
-  const contents = slotContents(ws, sol, seg);
+  const contents = slotContents(ws, sol, seg, week % sol.weeks);
   const winter = new Set(ws.settings.winterSegments);
   const usedLevels = ws.levels.filter((l) => sol.plan[l.id]);
 
@@ -358,6 +376,24 @@ function ResultView() {
           ))}
         </div>
 
+        {sol.weeks > 1 && (
+          <div className="flex flex-wrap items-center gap-1 rounded-xl bg-slate-100 p-1" title={t("result.weeksHint", { n: sol.weeks })}>
+            {Array.from({ length: sol.weeks }, (_, w) => (
+              <button
+                key={w}
+                onClick={() => setWeek(w)}
+                aria-pressed={week % sol.weeks === w}
+                className={clsx(
+                  "rounded-lg px-2.5 py-1 text-xs font-medium transition",
+                  week % sol.weeks === w ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-800",
+                )}
+              >
+                {t("result.week", { w: w + 1 })}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="relative ml-auto">
           <Button variant="primary" onClick={() => setMenu((m) => !m)} disabled={busy}>
             {busy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} {t("result.download")}
@@ -382,8 +418,9 @@ function ResultView() {
               {items.map((it, i) => (
                 <div
                   key={i}
-                  className="flex-1 rounded-lg px-2 py-1 text-xs leading-tight"
+                  className={clsx("flex-1 rounded-lg px-2 py-1 text-xs leading-tight", !it.first && "opacity-80")}
                   style={{ background: it.color, color: textOn(it.color) }}
+                  title={`${it.level} · ${it.sport} · ${it.place} · ${it.time}`}
                 >
                   <div className="font-semibold">
                     {it.level}

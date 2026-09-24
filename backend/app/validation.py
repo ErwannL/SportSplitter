@@ -10,36 +10,23 @@ def norm(name: str) -> str:
     return " ".join(name.strip().lower().split())
 
 
-def level_by_name(ws: Workspace) -> dict[str, str]:
-    return {norm(lv.name): lv.id for lv in ws.levels}
-
-
 def validate(ws: Workspace) -> list[Issue]:
     if ws.timetable is None:
         return [issue("no_timetable", target_type="timetable")]
 
     issues: list[Issue] = []
-    known = level_by_name(ws)
-    used_levels: set[str] = set()
-    reported: set[str] = set()
-    for cell in ws.timetable.cells:
-        if cell.closed:
-            continue
-        for e in cell.entries:
-            lid = known.get(norm(e.level))
-            if lid is not None:
-                used_levels.add(lid)
-            elif norm(e.level) not in reported:
-                reported.add(norm(e.level))
-                issues.append(issue("unknown_level", target=e.level, target_type="level", level=e.level))
+    for row in ws.timetable.rows:
+        if row.minutes <= 0:
+            issues.append(issue("row_no_duration", target_type="timetable", row=row.label))
 
     sports = {s.id: s for s in ws.sports}
     places = {p.id: p for p in ws.places}
     used_sports: set[str] = set()
+    if not ws.levels:
+        issues.append(issue("no_level", target_type="level"))
     for lv in ws.levels:
-        if lv.id not in used_levels:
-            issues.append(issue("level_unused", severity="warning", target=lv.id, target_type="level", level=lv.name))
-            continue
+        if not any(lv.cycle):
+            issues.append(issue("level_no_session", target=lv.id, target_type="level", level=lv.name))
         valid = [sid for sid in lv.sport_ids if sid in sports]
         if not valid:
             issues.append(issue("level_no_sport", target=lv.id, target_type="level", level=lv.name))
@@ -55,12 +42,12 @@ def validate(ws: Workspace) -> list[Issue]:
             issues.append(issue("place_never_available", severity="warning", target=pl.id, target_type="place",
                                 place=pl.name))
 
-    seen: dict[str, str] = {}
+    seen: set[str] = set()
     for lv in ws.levels:
         key = norm(lv.name)
         if key in seen:
             issues.append(issue("duplicate_level", target=lv.id, target_type="level", level=lv.name))
-        seen[key] = lv.id
+        seen.add(key)
     return issues
 
 

@@ -47,6 +47,8 @@ class TimeRow(Camel):
     label: str
     start: str = ""
     end: str = ""
+    # durée du créneau en minutes (0 si les heures sont illisibles)
+    minutes: int = 0
 
 
 class Entry(Camel):
@@ -78,6 +80,10 @@ class Level(Camel):
     name: str
     mode: Mode = "trimestre"
     sport_ids: list[str] = Field(default_factory=list, alias="sportIds")
+    # classes du niveau qui ont EPS en même temps à chaque séance
+    groups: int = Field(1, ge=1, le=20)
+    # rythme : une liste par semaine du cycle (1 à 4 semaines), chaque semaine = durées des séances en minutes
+    cycle: list[list[int]] = Field(default_factory=lambda: [[120]], min_length=1, max_length=4)
 
 
 class Sport(Camel):
@@ -107,6 +113,11 @@ class Settings(Camel):
     max_winter_violations: int = Field(1, ge=0, alias="maxWinterViolations")
     priority_required: bool = Field(True, alias="priorityRequired")
     barrette_min_groups: int = Field(2, ge=2, alias="barretteMinGroups")
+    # plusieurs séances d'un niveau dans la même semaine peuvent-elles tomber le même jour ?
+    same_day_allowed: bool = Field(False, alias="sameDayAllowed")
+    # classes simultanées d'un niveau (hors barrette) : lieux différents obligatoires / souhaités / libres
+    separate_places_rule: Literal["soft", "hard", "off"] = Field("hard", alias="separatePlacesRule")
+    max_separate_violations: int = Field(1, ge=0, alias="maxSeparateViolations")
     allow_repeat: bool = Field(True, alias="allowRepeat")
     max_solutions: int = Field(200, ge=1, le=5000, alias="maxSolutions")
     time_limit: float = Field(20.0, gt=0, le=600, alias="timeLimit")
@@ -131,6 +142,12 @@ class Placement(Camel):
 class Assignment(Camel):
     slot_id: str = Field(alias="slotId")
     level_id: str = Field(alias="levelId")
+    session: int = 0  # numéro de la séance dans sa semaine
+    week: int = 0  # semaine du cycle du niveau (0 = A)
+    day: int = 0
+    row: int = 0
+    span: int = 1  # nombre de lignes de la grille couvertes
+    minutes: int = 0
     period: str
     sport_id: str = Field(alias="sportId")
     placements: list[Placement]
@@ -151,6 +168,7 @@ class Violation(Camel):
 class Solution(Camel):
     index: int
     plan: dict[str, dict[str, str]]  # levelId -> period -> sportId
+    weeks: int = 1  # longueur du cycle commun (PPCM des cycles des niveaux)
     assignments: list[Assignment]
     violations: list[Violation] = []
 
