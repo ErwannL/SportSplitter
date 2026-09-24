@@ -242,7 +242,10 @@ def create_app(cfg: Config | None = None, store: Store | None = None) -> FastAPI
 
     @app.exception_handler(ApiError)
     async def _api_error(_: Request, exc: ApiError):
-        return JSONResponse({"code": exc.code}, status_code=exc.status)
+        body = {"code": exc.code}
+        if exc.code == "UNAUTHENTICATED":  # l'écran « Accès via Orqea » a besoin du lien
+            body["orqeaUrl"] = cfg.orqea_url
+        return JSONResponse(body, status_code=exc.status)
 
     app.include_router(public)
     if cfg.dev_login:

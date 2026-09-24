@@ -146,7 +146,7 @@ def test_unreadable_token_logs_no_sub(tmp_path, caplog):
 def test_me_requires_session_and_logout_clears_it(tmp_path):
     client = make_client(tmp_path)
     assert client.get("/api/me").status_code == 401
-    assert client.get("/api/me").json() == {"code": "UNAUTHENTICATED"}
+    assert client.get("/api/me").json() == {"code": "UNAUTHENTICATED", "orqeaUrl": "https://orqea.dev"}
     assert _sso(client, mint()).status_code == 204
     assert client.get("/api/me").status_code == 200
     r = client.post("/api/auth/logout")

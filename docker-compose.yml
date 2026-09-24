@@ -24,11 +24,18 @@ services:
     container_name: sportsplitter-backend
     environment:
       DATABASE_URL: postgresql+psycopg://sportsplitter:sportsplitter@db:5432/sportsplitter
+      SPORTSPLITTER_ENV: ${SPORTSPLITTER_ENV:-development}
+      SPORTSPLITTER_SSO_SECRET: ${SPORTSPLITTER_SSO_SECRET:-}
+      SPORTSPLITTER_SESSION_SECRET: ${SPORTSPLITTER_SESSION_SECRET:-}
+      SPORTSPLITTER_PUBLIC_URL: ${SPORTSPLITTER_PUBLIC_URL:-http://localhost:8090}
+      SPORTSPLITTER_ORQEA_URL: ${SPORTSPLITTER_ORQEA_URL:-https://orqea.dev}
+      SPORTSPLITTER_DEV_LOGIN: ${SPORTSPLITTER_DEV_LOGIN:-}
+      SPORTSPLITTER_LEGACY_OWNER_SUB: ${SPORTSPLITTER_LEGACY_OWNER_SUB:-}
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "${BACKEND_PORT:-8001}:8000"
+      - "127.0.0.1:${BACKEND_PORT:-8001}:8000"
 
   frontend:
     build: ./frontend
@@ -37,7 +44,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-8090}:80"
+      - "127.0.0.1:${FRONTEND_PORT:-8090}:80"
 
 volumes:
   db-data:
