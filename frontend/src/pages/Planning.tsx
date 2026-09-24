@@ -75,7 +75,7 @@ function ImportHero() {
         <button
           onClick={imp.open}
           disabled={imp.busy}
-          className="flex items-center gap-5 rounded-full bg-slate-900 py-5 pl-8 pr-12 text-2xl font-medium text-on shadow-xl shadow-slate-900/20 transition hover:scale-[1.02] hover:bg-indigo-600 disabled:opacity-70"
+          className="flex items-center gap-5 rounded-full bg-slate-900 py-5 pl-8 pr-12 text-2xl font-medium text-slate-50 shadow-xl shadow-slate-900/20 transition hover:scale-[1.02] hover:bg-indigo-600 disabled:opacity-70"
         >
           {imp.busy ? <Loader2 size={34} className="animate-spin" /> : <Upload size={34} />}
           {t("planning.import")}
