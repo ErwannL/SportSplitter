@@ -30,7 +30,7 @@ describe("prefs", () => {
     p().closeOnboarding();
     expect(p().onboardingOpen).toBe(false);
     expect(JSON.parse(localStorage.getItem("sportsplitter.prefs")!)).toMatchObject({ onboarded: true, lang: "en" });
-    p().setMe({ role: "prof", permissions: [] });
+    p().setMe({ sub: "u2", email: "", name: "Prof", role: "prof", permissions: [] });
     expect(canEditRules(p().me)).toBe(false);
   });
   it("useT", () => {

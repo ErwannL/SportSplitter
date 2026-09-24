@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { vi } from "vitest";
 import { useStore } from "../store";
-import type { Workspace } from "../types";
+import type { Me, Workspace } from "../types";
 import { defaultPreferences, defaultSettings } from "../store";
 
 export function Loc() {
@@ -57,3 +57,13 @@ export const readyWs = (): Workspace => ({
 });
 
 export const setWs = (ws: Workspace) => useStore.setState({ ws });
+
+export const ADMIN_ME: Me = {
+  sub: "u1",
+  email: "admin@example.org",
+  name: "Admin",
+  role: "admin",
+  permissions: ["edit_workspace", "edit_rules"],
+};
+
+export const profMe = (): Me => ({ sub: "u2", email: "prof@example.org", name: "Prof", role: "prof", permissions: [] });

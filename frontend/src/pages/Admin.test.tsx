@@ -49,7 +49,7 @@ describe("AdminPage", () => {
     expect(settings().winterRule).toBe("soft");
   });
   it("lecture seule", async () => {
-    usePrefs.setState({ me: { role: "prof", permissions: [] } });
+    usePrefs.setState({ me: { sub: "u2", email: "", name: "Prof", role: "prof", permissions: [] } });
     renderAt(<AdminPage />, "/admin");
     expect(screen.getByText(/pas les droits/)).toBeInTheDocument();
     expect(screen.getByText(/Rétablir/).closest("button")).toBeDisabled();

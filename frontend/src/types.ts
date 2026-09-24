@@ -75,6 +75,9 @@ export type Params = Record<string, string | number>;
 export type TargetType = "level" | "sport" | "place" | "timetable";
 
 export interface Me {
+  sub: string;
+  email: string;
+  name: string;
   role: string;
   permissions: string[];
 }

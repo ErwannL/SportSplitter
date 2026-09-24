@@ -28,7 +28,7 @@ describe("Layout", () => {
     await u.click(screen.getByLabelText("Déployer le menu"));
   });
   it("états de sauvegarde, sans admin, page admin sans guide", () => {
-    usePrefs.setState({ me: { role: "prof", permissions: [] }, collapsed: true });
+    usePrefs.setState({ me: { sub: "u2", email: "", name: "Prof", role: "prof", permissions: [] }, collapsed: true });
     useStore.setState({ save: "saving" });
     const { unmount } = renderAt(<Layout />, "/admin");
     expect(screen.queryByTitle("Administration")).toBeNull();

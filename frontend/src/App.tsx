@@ -1,14 +1,15 @@
-import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "./auth";
 import { Layout } from "./components/Layout";
-import { api } from "./lib/api";
+import { AccessScreen, LoadingScreen, UnreachableScreen } from "./pages/Access";
 import { AdminPage } from "./pages/Admin";
 import { ClassesPage } from "./pages/Classes";
 import { ConfigurationPage } from "./pages/Configuration";
 import { PlacesPage } from "./pages/Places";
 import { PlanningPage } from "./pages/Planning";
 import { SportsPage } from "./pages/Sports";
+import { SsoPage } from "./pages/Sso";
 import { applyTheme, canEditRules, usePrefs } from "./prefs";
 import { useStore } from "./store";
 
@@ -29,26 +30,30 @@ export function AppRoutes() {
   );
 }
 
+/** Rien de l'application n'est rendu sans session valide. */
+export function AuthGate() {
+  const status = useAuth((s) => s.status);
+  if (status === "loading") return <LoadingScreen />;
+  if (status === "anonymous") return <AccessScreen />;
+  if (status === "unreachable") return <UnreachableScreen />;
+  return <AppRoutes />;
+}
+
 export function App() {
-  const { loaded, load } = useStore();
-  const setMe = usePrefs((p) => p.setMe);
   useEffect(() => {
     applyTheme(usePrefs.getState().theme);
-    load();
-    api.me().then(setMe, () => undefined);
+    // la page /sso ouvre elle-même la session avant de vérifier
+    if (window.location.pathname !== "/sso") void useAuth.getState().check();
     const flush = () => void useStore.getState().flush();
     window.addEventListener("pagehide", flush);
     return () => window.removeEventListener("pagehide", flush);
-  }, [load, setMe]);
-  if (!loaded)
-    return (
-      <div className="flex h-screen items-center justify-center text-indigo-600">
-        <Loader2 className="animate-spin" size={40} />
-      </div>
-    );
+  }, []);
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <Routes>
+        <Route path="/sso" element={<SsoPage />} />
+        <Route path="*" element={<AuthGate />} />
+      </Routes>
     </BrowserRouter>
   );
 }

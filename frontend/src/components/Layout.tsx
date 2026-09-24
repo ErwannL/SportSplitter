@@ -1,11 +1,12 @@
 import clsx from "clsx";
 import {
-  Check, CircleHelp, CloudOff, GraduationCap, Home, Loader2, MapPin, Moon, PanelLeftClose, PanelLeftOpen, ShieldCheck, SlidersHorizontal, Sun,
+  Check, CircleHelp, CloudOff, GraduationCap, Home, Loader2, MapPin, Moon, PanelLeftClose, LogOut, PanelLeftOpen, ShieldCheck, SlidersHorizontal, Sun,
   Volleyball,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import type { Key } from "../lib/i18n";
+import { useAuth } from "../auth";
 import { readiness } from "../lib/readiness";
 import { canEditRules, usePrefs, useT } from "../prefs";
 import { useStore } from "../store";
@@ -49,6 +50,7 @@ export function Layout() {
   const ws = useStore((s) => s.ws);
   const save = useStore((s) => s.save);
   const { collapsed, toggleCollapsed, theme, setTheme, lang, setLang, me, openOnboarding } = usePrefs();
+  const logout = useAuth((a) => a.logout);
   const status = readiness(ws);
   const path = useLocation().pathname;
   const onAdmin = path.startsWith("/admin") || path.startsWith("/configuration");
@@ -147,6 +149,12 @@ export function Layout() {
               </span>
             )}
           </div>
+          <SideButton
+            collapsed={collapsed}
+            label={me.name ? `${t("nav.logout")} (${me.name})` : t("nav.logout")}
+            icon={<LogOut size={18} />}
+            onClick={() => void logout()}
+          />
           <SideButton
             collapsed={collapsed}
             label={collapsed ? t("nav.expand") : t("nav.collapse")}

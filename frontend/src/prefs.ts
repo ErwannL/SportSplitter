@@ -54,8 +54,8 @@ export const usePrefs = create<PrefsState>((set, get) => {
   };
   return {
     ...initial,
-    // en développement, tout le monde est administrateur (remplacé par /api/me au démarrage)
-    me: { role: "admin", permissions: ["edit_workspace", "edit_rules"] },
+    // aucun droit tant que la session n'est pas connue (remplacé par /api/me)
+    me: { sub: "", email: "", name: "", role: "user", permissions: [] },
     onboardingOpen: !initial.onboarded,
     setTheme: (theme) => {
       update({ theme });

@@ -11,7 +11,31 @@ export const LEVEL_PRESETS: Record<string, string[]> = {
   Université: ["L1", "L2", "L3", "M1", "M2"],
 };
 
-const LOCAL_KEY = "sportsplitter.workspace";
+/** Ancienne clé (avant les comptes), migrée vers la clé de l'utilisateur à sa première connexion. */
+export const LEGACY_LOCAL_KEY = "sportsplitter.workspace";
+export const localKey = (sub: string) => `${LEGACY_LOCAL_KEY}.${sub}`;
+
+interface LocalCopy {
+  ws: Partial<Workspace>;
+  /** true : modifications pas encore enregistrées sur le serveur (session expirée, hors ligne…) */
+  dirty: boolean;
+}
+
+export function readLocal(sub: string): LocalCopy | null {
+  const key = localKey(sub);
+  let raw = localStorage.getItem(key);
+  const legacy = localStorage.getItem(LEGACY_LOCAL_KEY);
+  if (raw === null && legacy !== null) {
+    raw = JSON.stringify({ ws: JSON.parse(legacy), dirty: false });
+    localStorage.setItem(key, raw);
+  }
+  if (legacy !== null) localStorage.removeItem(LEGACY_LOCAL_KEY);
+  return raw === null ? null : (JSON.parse(raw) as LocalCopy);
+}
+
+function writeLocal(sub: string, ws: Workspace, dirty: boolean) {
+  if (sub) localStorage.setItem(localKey(sub), JSON.stringify({ ws, dirty }));
+}
 
 export const defaultSettings = (): Settings => ({
   winterSegments: ["Q2", "Q3"],
@@ -82,7 +106,11 @@ interface State {
   result: SolveResult | null;
   /** Problèmes du dernier calcul impossible ; gardés (marqués « périmés ») après modification. */
   lastIssues: { issues: Issue[]; stale: boolean } | null;
-  load: () => Promise<void>;
+  /** utilisateur connecté (clé de la sauvegarde locale) */
+  sub: string;
+  load: (sub: string) => Promise<void>;
+  /** Déconnexion : vide l'état en mémoire (la copie locale de l'utilisateur est gardée). */
+  clear: () => void;
   setTimetable: (t: Timetable | null) => void;
   addLevel: (name?: string) => string;
   addLevels: (names: string[]) => void;
@@ -119,10 +147,11 @@ export const useStore = create<State>((set, get) => {
     clearTimeout(timer);
     if (!pending) return;
     pending = false;
-    const ws = get().ws;
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(ws));
+    const { ws, sub } = get();
+    writeLocal(sub, ws, true); // gardée localement tant que le serveur ne l'a pas confirmée
     try {
       await api.saveWorkspace(ws);
+      writeLocal(sub, ws, false);
       set({ save: "saved" });
     } catch {
       set({ save: "offline" });
@@ -136,14 +165,30 @@ export const useStore = create<State>((set, get) => {
     result: null,
     lastIssues: null,
 
-    async load() {
+    sub: "",
+
+    async load(sub) {
+      set({ sub });
+      const local = readLocal(sub);
       try {
-        const ws = await api.loadWorkspace();
-        set({ ws: hydrate(ws), loaded: true, save: "saved" });
+        const server = await api.loadWorkspace();
+        if (local?.dirty) {
+          // modifications faites avant l'expiration de la session : on les reprend et on les renvoie
+          set({ ws: hydrate({ ...local.ws, settings: server.settings }), loaded: true, save: "saving" });
+          pending = true;
+          await flush();
+        } else {
+          set({ ws: hydrate(server), loaded: true, save: "saved" });
+        }
       } catch {
-        const local = localStorage.getItem(LOCAL_KEY);
-        set({ ws: hydrate(local ? JSON.parse(local) : {}), loaded: true, save: "offline" });
+        set({ ws: hydrate(local?.ws ?? {}), loaded: true, save: "offline" });
       }
+    },
+
+    clear: () => {
+      clearTimeout(timer);
+      pending = false;
+      set({ ws: emptyWorkspace(), loaded: false, sub: "", result: null, lastIssues: null, save: "idle" });
     },
 
     setTimetable: (t) => mutate((ws) => ({ ...ws, timetable: t })),
