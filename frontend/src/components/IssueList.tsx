@@ -62,7 +62,7 @@ export function TabIssues({ types }: { types: TargetType[] }) {
           </Link>
         )}
       </div>
-      <ul className="grid gap-2 lg:grid-cols-2">
+      <ul className="grid max-h-80 gap-2 overflow-y-auto lg:grid-cols-2">
         {live.map((p, k) => (
           <IssueItem key={`l${k}`} to={targetLink(p.targetType, p.target, ws)} message={t(p.key, p.params)} fix={translateFix(lang, p.key, p.params)} />
         ))}

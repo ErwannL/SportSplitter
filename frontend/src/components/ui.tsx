@@ -143,12 +143,12 @@ export function Column({
       ref={ref}
       id={`col-${id}`}
       className={clsx(
-        "flex shrink-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm",
+        "flex shrink-0 flex-col rounded-2xl border bg-white shadow-sm",
         focused ? "focus-flash border-indigo-400" : "border-slate-200",
         width,
       )}
     >
-      <div className="h-1.5" style={{ background: accent ?? "#6366f1" }} />
+      <div className="h-1.5 rounded-t-2xl" style={{ background: accent ?? "#6366f1" }} />
       <header className="flex items-center gap-1 border-b border-slate-100 px-3 py-3">
         <InlineEdit value={title} onChange={onRename} className="text-lg font-semibold text-slate-900" />
         {badge}
@@ -242,7 +242,7 @@ export function AddPicker({
         placeholder={placeholder}
         className="w-full rounded-xl border border-indigo-300 px-3 py-2.5 text-sm outline-none ring-4 ring-indigo-100"
       />
-      <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
+      <div className="mt-1 max-h-60 w-full overflow-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg">
         {avail.map((o) => (
           <button key={o.id} onClick={() => submit(() => onPick(o.id))} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50">
             {o.name}

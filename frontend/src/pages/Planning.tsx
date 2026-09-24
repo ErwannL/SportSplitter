@@ -212,7 +212,7 @@ function SetupView() {
               <h3 className="mb-1 flex items-center gap-2 font-semibold text-rose-600"><AlertCircle size={18} /> {t("planning.none")}</h3>
               <p className="mb-3 text-xs text-slate-500">{t("planning.noneHint")}</p>
               {last.stale && <p className="mb-3 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-700">{t("issues.stale")}</p>}
-              <ul className="space-y-2">
+              <ul className="-mr-2 max-h-[26rem] space-y-2 overflow-y-auto pr-2">
                 {[...last.issues].sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1)).map((i, k) => (
                   <IssueItem
                     key={k}
@@ -229,12 +229,12 @@ function SetupView() {
         </aside>
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="pointer-events-none sticky bottom-4 z-10 mt-8 flex justify-center">
         <button
           onClick={generate}
           disabled={!ready || loading}
           title={t(ready ? "planning.generate" : "planning.generateLocked")}
-          className="group flex h-16 items-center gap-3 rounded-full bg-indigo-600 px-8 text-lg font-semibold text-on shadow-xl shadow-indigo-600/30 transition hover:scale-[1.03] hover:bg-indigo-500 disabled:scale-100 disabled:bg-slate-300 disabled:shadow-none"
+          className="group pointer-events-auto flex h-16 items-center gap-3 rounded-full bg-indigo-600 px-8 text-lg font-semibold text-on shadow-xl shadow-indigo-600/30 transition hover:scale-[1.03] hover:bg-indigo-500 disabled:scale-100 disabled:bg-slate-300 disabled:shadow-none"
         >
           {loading ? <Loader2 className="animate-spin" /> : <Send className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />}
           {t("planning.generate")}
