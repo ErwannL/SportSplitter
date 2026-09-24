@@ -1,0 +1,42 @@
+import { describe, expect, it } from "vitest";
+import { isReady, readiness, timetableLevels } from "./readiness";
+import type { Workspace } from "../types";
+
+const base = (): Workspace => ({
+  timetable: {
+    days: ["Lundi"],
+    rows: [{ label: "8h", start: "8h", end: "10h" }],
+    cells: [{ day: 0, row: 0, rowSpan: 1, closed: false, entries: [{ level: "6eme", groups: 1 }, { level: "6EME ", groups: 1 }] }],
+    fileName: "t.xlsx",
+  },
+  levels: [{ id: "l", name: "6eme", mode: "trimestre", sportIds: ["s"] }],
+  sports: [{ id: "s", name: "Bad", priority: false, barrette: false, placeIds: ["p"] }],
+  places: [{ id: "p", name: "Gym", color: "#000000", outdoor: false, capacity: 1, availability: { "0-0": ["Q1"] } }],
+  settings: { winterSegments: ["Q2", "Q3"], maxSolutions: 10, timeLimit: 5 },
+});
+
+describe("readiness", () => {
+  it("dédoublonne les niveaux de l'emploi du temps", () => {
+    expect(timetableLevels(base())).toEqual(["6eme"]);
+  });
+  it("est prêt quand tout est configuré", () => {
+    expect(isReady(readiness(base()))).toBe(true);
+  });
+  it("bloque sans emploi du temps", () => {
+    const s = readiness({ ...base(), timetable: null });
+    expect(s.timetable).toBe(false);
+    expect(isReady(s)).toBe(false);
+  });
+  it("signale un niveau inconnu", () => {
+    const s = readiness({ ...base(), levels: [] });
+    expect(s.levels).toBe(false);
+    expect(s.problems[0]).toContain("6eme");
+  });
+  it("signale un sport sans lieu et un lieu jamais disponible", () => {
+    const ws = base();
+    ws.places[0].availability = {};
+    expect(readiness(ws).places).toBe(false);
+    ws.sports[0].placeIds = [];
+    expect(readiness(ws).sports).toBe(false);
+  });
+});

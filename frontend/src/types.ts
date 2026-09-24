@@ -1,0 +1,110 @@
+export type Segment = "Q1" | "Q2" | "Q3" | "Q4";
+export type Mode = "trimestre" | "semestre";
+export type Period = "T1" | "T2" | "T3" | "S1" | "S2";
+
+export interface TimeRow {
+  label: string;
+  start: string;
+  end: string;
+}
+
+export interface Entry {
+  level: string;
+  groups: number;
+}
+
+export interface Cell {
+  day: number;
+  row: number;
+  rowSpan: number;
+  closed: boolean;
+  entries: Entry[];
+}
+
+export interface Timetable {
+  days: string[];
+  rows: TimeRow[];
+  cells: Cell[];
+  fileName: string;
+}
+
+export interface Level {
+  id: string;
+  name: string;
+  mode: Mode;
+  sportIds: string[];
+}
+
+export interface Sport {
+  id: string;
+  name: string;
+  priority: boolean;
+  barrette: boolean;
+  placeIds: string[];
+}
+
+export interface Place {
+  id: string;
+  name: string;
+  color: string;
+  outdoor: boolean;
+  capacity: number;
+  availability: Record<string, Segment[]>;
+}
+
+export interface Settings {
+  winterSegments: Segment[];
+  maxSolutions: number;
+  timeLimit: number;
+}
+
+export interface Workspace {
+  timetable: Timetable | null;
+  levels: Level[];
+  sports: Sport[];
+  places: Place[];
+  settings: Settings;
+}
+
+export interface Placement {
+  placeId: string;
+  groups: number;
+}
+
+export interface Assignment {
+  slotId: string;
+  levelId: string;
+  period: Period;
+  sportId: string;
+  placements: Placement[];
+}
+
+export interface Violation {
+  rule: string;
+  message: string;
+  levelId?: string | null;
+  period?: Period | null;
+  placeId?: string | null;
+}
+
+export interface Solution {
+  index: number;
+  plan: Record<string, Partial<Record<Period, string>>>;
+  assignments: Assignment[];
+  violations: Violation[];
+}
+
+export interface Issue {
+  severity: "error" | "warning";
+  code: string;
+  message: string;
+  target?: string | null;
+}
+
+export interface SolveResult {
+  status: "ok" | "relaxed" | "infeasible";
+  solutions: Solution[];
+  totalFound: number;
+  truncated: boolean;
+  issues: Issue[];
+}

@@ -1,29 +1,32 @@
+.PHONY: up down logs dev-backend dev-frontend install test test-backend test-frontend lint
 
-.PHONY: start build clean superClean updateLock push updateTailwind
+up:            ## Lance toute l'application (http://localhost:8080)
+	docker compose up --build -d
 
-uselessFiles := $(wildcard src/*.js)
+down:
+	docker compose down
 
-start: updateTailwind
-	npm start
-	@$(MAKE) clean
+logs:
+	docker compose logs -f
 
-build: updateTailwind
-	npm run build
-	@$(MAKE) clean
+install:
+	pip install -r backend/requirements-dev.txt
+	cd frontend && npm install
 
-updateTailwind:
-	npx tailwindcss -i ./src/css/input.css -o ./src/css/output.css
+dev-backend:   ## API sur :8000 (SQLite local)
+	cd backend && uvicorn app.main:app --reload
 
-clean:
-	rm -rf $(uselessFiles)
+dev-frontend:  ## Interface sur :5173
+	cd frontend && npm run dev
 
-superClean: clean
-	rm -rf dist
+test: test-backend test-frontend
 
-updateLock:
-	npm update
+test-backend:
+	cd backend && python -m pytest -q
 
-push: updateLock superClean
-	git add .
-	git commit -m "$(ARGS)"
-	git push
+test-frontend:
+	cd frontend && npm test
+
+lint:
+	cd backend && ruff check app tests
+	cd frontend && npm run typecheck
