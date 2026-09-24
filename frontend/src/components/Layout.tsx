@@ -10,6 +10,7 @@ import { readiness } from "../lib/readiness";
 import { canEditRules, usePrefs, useT } from "../prefs";
 import { useStore } from "../store";
 import { Flag } from "./Flag";
+import { HeaderCredits } from "./HeaderCredits";
 import { Onboarding } from "./Onboarding";
 import { StepGuide } from "./StepGuide";
 
@@ -55,9 +56,15 @@ export function Layout() {
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900">
       <aside className={clsx("flex shrink-0 flex-col bg-side text-side-text transition-[width]", collapsed ? "w-20" : "w-64")}>
-        <div className={clsx("flex h-16 items-center gap-3", collapsed ? "justify-center" : "px-5")}>
+        <div className={clsx("flex min-h-16 items-center gap-3 py-2", collapsed ? "justify-center" : "px-5")}>
           <img src="/favicon.svg" alt="" className="h-9 w-9" />
-          {!collapsed && <span className="text-lg font-bold tracking-tight text-on">SportsSplitter</span>}
+          {!collapsed && (
+            <div className="min-w-0">
+              <span className="block text-lg font-bold leading-tight tracking-tight text-on">{t("app.name")}</span>
+              {/* en-tête : masqué sous 1024 px et quand le menu est replié (voir le pied du menu) */}
+              <HeaderCredits className="hidden lg:flex" />
+            </div>
+          )}
         </div>
 
         <nav className="mt-4 flex flex-1 flex-col gap-1 px-3">
@@ -123,6 +130,12 @@ export function Layout() {
               </button>
             ))}
           </div>
+          {/* pied du menu : crédits complets sous 1024 px, mention compacte quand le menu est replié */}
+          {collapsed ? (
+            <HeaderCredits compact className="items-center px-1 py-1 text-center" />
+          ) : (
+            <HeaderCredits className="px-3 py-1 lg:hidden" />
+          )}
           <div className="my-1 border-t border-side-hover" />
           <div className={clsx("flex items-center gap-2 px-3 py-1.5 text-xs", collapsed && "justify-center")} title={t("save.hint")}>
             {save === "saving" && <Loader2 size={14} className="shrink-0 animate-spin" />}

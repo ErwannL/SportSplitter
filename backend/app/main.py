@@ -17,7 +17,7 @@ from .validation import validate
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-app = FastAPI(title="SportsSplitter API", version="2.0.0")
+app = FastAPI(title="SportSplitter by Orqea API", version="2.0.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 

@@ -1,4 +1,6 @@
-# SportsSplitter
+# SportSplitter by Orqea
+
+> Propulsé par [Orqea](https://orqea.dev) · Développé par [Erwann Laplante](https://github.com/ErwannL/ErwannL)
 
 Génère automatiquement la répartition des sports d'EPS : quelle classe fait quel sport, à quelle période et dans quel lieu, à partir de l'emploi du temps de l'établissement.
 
@@ -21,7 +23,7 @@ make test          # pytest + vitest
 
 ## Parcours
 
-Les professeurs d'EPS indiquent quand l'EPS est possible ; SportsSplitter construit l'emploi du temps des classes.
+Les professeurs d'EPS indiquent quand l'EPS est possible ; SportSplitter construit l'emploi du temps des classes.
 
 1. **Planning** : import de la grille vide des créneaux (Excel). Cliquez sur une case pour l'ouvrir ou la fermer.
 2. **Classes** : niveaux libres (6e, Terminale, L1… ou n'importe quel nom), avec :
