@@ -37,7 +37,7 @@ export function PlacesPage() {
 
   const fillAll = (place: Place, segs: Segment[]) => {
     const availability: Record<string, Segment[]> = {};
-    for (const c of ws.timetable?.cells ?? []) if (!c.closed) availability[slotId(c.day, c.row)] = segs;
+    for (const c of ws.timetable!.cells) if (!c.closed) availability[slotId(c.day, c.row)] = segs;
     s.updatePlace(place.id, { availability });
   };
 

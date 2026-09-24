@@ -283,11 +283,15 @@ function ResultView() {
   const winter = new Set(ws.settings.winterSegments);
   const usedLevels = ws.levels.filter((l) => sol.plan[l.id]);
 
+  const [exportError, setExportError] = useState(false);
   const exportSols = async (list: Solution[]) => {
     setMenu(false);
     setBusy(true);
     try {
       await api.exportSolutions(ws, list, lang);
+      setExportError(false);
+    } catch {
+      setExportError(true);
     } finally {
       setBusy(false);
     }
@@ -369,6 +373,7 @@ function ResultView() {
         </div>
       </div>
 
+      {exportError && <ErrorBox text={t("error.export")} />}
       <TimetableGrid
         timetable={ws.timetable!}
         renderCell={(_, id) => {
