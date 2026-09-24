@@ -63,9 +63,9 @@ def test_template_roundtrip():
     assert len(tt.rows) == 20 and all(r.minutes == 30 for r in tt.rows)
     assert tt.rows[0].label == "8h – 8h30" and tt.rows[-1].label == "17h30 – 18h"
     assert all(c.closed for c in tt.cells if c.row in (8, 9))
-    wed = [c for c in tt.cells if c.day == 2]
-    assert len(wed) == 11 and wed[-1].closed and (wed[-1].row, wed[-1].row_span) == (10, 10)
-    assert not any(c.closed for c in tt.cells if c.day == 0 and c.row not in (8, 9))
+    for d in range(5):  # tous les jours identiques, mercredi compris
+        assert [c.closed for c in tt.cells if c.day == d] == [r in (8, 9) for r in range(20)]
+    assert parse_timetable(template_workbook(saturday=True)).days[-1] == "Samedi"
 
 
 def test_parse_time_objects_offset_header_and_merges():

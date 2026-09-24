@@ -86,6 +86,27 @@ describe("PlanningPage : configuration", () => {
     expect(closed()).toEqual([true, false, false]);
     expect(screen.getAllByText("Fermé")).toHaveLength(1);
   });
+  it("ouvrir un bloc fermé fusionné le redécoupe en créneaux séparés", () => {
+    const ws = readyWs();
+    const tt = ws.timetable!;
+    ws.timetable = { ...tt, cells: [...tt.cells.filter((c) => c.day !== 1), { day: 1, row: 0, rowSpan: 2, closed: true, entries: [] }] };
+    setWs(ws);
+    renderAt(<PlanningPage />);
+    fireEvent.pointerDown(screen.getAllByText("Fermé").at(-1)!.parentElement!);
+    const tue = useStore.getState().ws.timetable!.cells.filter((c) => c.day === 1);
+    expect(tue.map((c) => [c.row, c.rowSpan, c.closed])).toEqual([[0, 1, false], [1, 1, false]]);
+  });
+  it("lien du modèle Excel avec ou sans samedi", () => {
+    const ws = readyWs();
+    ws.timetable = null;
+    setWs(ws);
+    const { unmount } = renderAt(<PlanningPage />);
+    expect(screen.getByText("Télécharger un modèle Excel").closest("a")).toHaveAttribute("href", "/api/timetable/template");
+    unmount();
+    setWs({ ...ws, preferences: { ...ws.preferences, saturday: true } });
+    renderAt(<PlanningPage />);
+    expect(screen.getByText("Télécharger un modèle Excel").closest("a")).toHaveAttribute("href", "/api/timetable/template?saturday=true");
+  });
   it("retirer l'emploi du temps et remplacer", async () => {
     setWs(readyWs());
     renderAt(<PlanningPage />);

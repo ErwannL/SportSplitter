@@ -59,7 +59,8 @@ En développement, tout le monde est administrateur. Le rôle est donné par `SP
 
 * Première ligne : jours. Première colonne : créneaux avec heure de début et de fin (`8h - 9h`, `8h30 - 10h`, `08:00-09:00`), qui donnent la durée de chaque créneau.
 * Une séance occupe des créneaux contigus d'un même jour dont la durée totale vaut la durée de la séance. Pour des séances de 1h30, utilisez des créneaux de 30 min ou de 1h30.
-* Une case vide est ouverte. Une case marquée `X` ou `fermé`, ou une cellule fusionnée vide, est fermée.
+* Une case vide est ouverte. Une case marquée `X` ou `fermé`, ou une cellule fusionnée vide, est fermée. Dans l'appli, un clic ouvre ou ferme une case (un bloc fusionné rouvert est redécoupé en créneaux).
+* Le modèle téléchargeable va de 8h à 18h au pas de 30 min, midi fermé ; la colonne Samedi est ajoutée si « Cours le samedi » est activé dans Configuration.
 
 ## Modèle de l'année
 

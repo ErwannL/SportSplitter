@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Minus, SlidersHorizontal } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Minus, SlidersHorizontal } from "lucide-react";
 import type { ReactNode } from "react";
 import { PageHeader } from "../components/ui";
 import { useT } from "../prefs";
@@ -18,7 +18,8 @@ export function fillCost(pref: Preferences, day: number, row: number, days = DAY
 
 /** Rang de remplissage de chaque case d'une petite grille d'exemple (1 = remplie en premier). */
 export function fillOrder(pref: Preferences): number[][] {
-  const costs = Array.from({ length: ROWS }, (_, r) => Array.from({ length: DAYS }, (_, d) => fillCost(pref, d, r)));
+  const days = pref.saturday ? DAYS + 1 : DAYS;
+  const costs = Array.from({ length: ROWS }, (_, r) => Array.from({ length: days }, (_, d) => fillCost(pref, d, r, days)));
   const distinct = [...new Set(costs.flat())].sort((a, b) => a - b);
   return costs.map((row) => row.map((c) => distinct.indexOf(c) + 1));
 }
@@ -64,11 +65,31 @@ export function ConfigurationPage() {
   const update = useStore((s) => s.updatePreferences);
   const order = fillOrder(pref);
   const max = Math.max(...order.flat());
-  const days = ["L", "M", "M", "J", "V"];
+  const days = ["L", "M", "M", "J", "V", ...(pref.saturday ? ["S"] : [])];
 
   return (
     <>
       <PageHeader title={t("config.title")} subtitle={t("config.subtitle")} />
+      <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="mb-1 flex items-center gap-2 font-semibold text-slate-900">
+          <CalendarDays size={18} className="text-indigo-600" /> {t("config.week")}
+        </h2>
+        <label className="mt-3 flex cursor-pointer items-center justify-between gap-4">
+          <span>
+            <span className="block text-sm font-medium text-slate-700">{t("config.saturday")}</span>
+            <span className="block text-xs text-slate-400">{t("config.saturdayHint")}</span>
+          </span>
+          <button
+            role="switch"
+            aria-checked={pref.saturday}
+            aria-label={t("config.saturday")}
+            onClick={() => update({ saturday: !pref.saturday })}
+            className={clsx("relative h-6 w-11 shrink-0 rounded-full transition", pref.saturday ? "bg-indigo-600" : "bg-slate-300")}
+          >
+            <span className={clsx("absolute top-0.5 h-5 w-5 rounded-full bg-on shadow transition-all", pref.saturday ? "left-[22px]" : "left-0.5")} />
+          </button>
+        </label>
+      </section>
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="mb-1 flex items-center gap-2 font-semibold text-slate-900">
           <SlidersHorizontal size={18} className="text-indigo-600" /> {t("config.fill")}
@@ -99,7 +120,7 @@ export function ConfigurationPage() {
           </div>
           <div>
             <div className="mb-2 text-sm font-medium text-slate-700">{t("config.preview")}</div>
-            <div className="grid grid-cols-5 gap-1" data-testid="fill-preview">
+            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }} data-testid="fill-preview">
               {days.map((d, i) => (
                 <div key={i} className="text-center text-xs font-semibold text-slate-400">
                   {d}

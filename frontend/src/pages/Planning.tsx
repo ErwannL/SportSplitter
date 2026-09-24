@@ -49,6 +49,7 @@ function useImport() {
 
 function ImportHero() {
   const t = useT();
+  const saturday = useStore((st) => st.ws.preferences.saturday);
   const imp = useImport();
   const [over, setOver] = useState(false);
   return (
@@ -80,7 +81,7 @@ function ImportHero() {
           {t("planning.import")}
         </button>
         <p className="mt-5 text-sm text-slate-500">{t("planning.drop")}</p>
-        <a href={api.templateUrl} className="mt-6 flex items-center gap-2 text-sm font-medium text-indigo-600 hover:underline">
+        <a href={`${api.templateUrl}${saturday ? "?saturday=true" : ""}`} className="mt-6 flex items-center gap-2 text-sm font-medium text-indigo-600 hover:underline">
           <FileSpreadsheet size={16} /> {t("planning.template")}
         </a>
         {imp.error && <ErrorBox text={imp.error} />}
@@ -107,10 +108,17 @@ function SetupView() {
   const imp = useImport();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // ouvrir un bloc fusionné le redécoupe en créneaux séparés
   const toggle = (cell: Cell) =>
     setTimetable({
       ...ws.timetable!,
-      cells: ws.timetable!.cells.map((c) => (c.day === cell.day && c.row === cell.row ? { ...c, closed: !c.closed } : c)),
+      cells: ws.timetable!.cells.flatMap((c) =>
+        c.day !== cell.day || c.row !== cell.row
+          ? [c]
+          : c.closed && c.rowSpan > 1
+            ? Array.from({ length: c.rowSpan }, (_, k) => ({ ...c, row: c.row + k, rowSpan: 1, closed: false }))
+            : [{ ...c, closed: !c.closed }],
+      ),
     });
 
   const generate = async () => {

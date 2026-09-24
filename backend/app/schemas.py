@@ -129,6 +129,8 @@ class Preferences(Camel):
     # sens de remplissage de la grille à privilégier
     fill_vertical: Literal["top", "bottom", "none"] = Field("top", alias="fillVertical")
     fill_horizontal: Literal["left", "right", "none"] = Field("left", alias="fillHorizontal")
+    # l'établissement a-t-il cours le samedi ? (modèle Excel et grille)
+    saturday: bool = False
 
 
 class Workspace(Camel):

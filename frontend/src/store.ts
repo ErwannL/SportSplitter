@@ -27,7 +27,30 @@ export const defaultSettings = (): Settings => ({
   timeLimit: 20,
 });
 
-export const defaultPreferences = (): Preferences => ({ fillVertical: "top", fillHorizontal: "left" });
+export const defaultPreferences = (): Preferences => ({ fillVertical: "top", fillHorizontal: "left", saturday: false });
+
+export const SATURDAY = "Samedi";
+
+/** Ajoute ou retire la colonne du samedi (cases ouvertes) dans la grille. */
+export function withSaturday(tt: Timetable, on: boolean): Timetable {
+  const idx = tt.days.findIndex((d) => norm(d) === norm(SATURDAY));
+  if (on && idx < 0) {
+    const day = tt.days.length;
+    return {
+      ...tt,
+      days: [...tt.days, SATURDAY],
+      cells: [...tt.cells, ...tt.rows.map((_, row) => ({ day, row, rowSpan: 1, closed: false, entries: [] }))],
+    };
+  }
+  if (!on && idx >= 0) {
+    return {
+      ...tt,
+      days: tt.days.filter((_, i) => i !== idx),
+      cells: tt.cells.filter((c) => c.day !== idx).map((c) => (c.day > idx ? { ...c, day: c.day - 1 } : c)),
+    };
+  }
+  return tt;
+}
 
 export const emptyWorkspace = (): Workspace => ({
   timetable: null,
@@ -198,7 +221,12 @@ export const useStore = create<State>((set, get) => {
         sports: ws.sports.map((s) => ({ ...s, placeIds: s.placeIds.filter((p) => p !== id) })),
       })),
 
-    updatePreferences: (patch) => mutate((ws) => ({ ...ws, preferences: { ...ws.preferences, ...patch } })),
+    updatePreferences: (patch) =>
+      mutate((ws) => ({
+        ...ws,
+        preferences: { ...ws.preferences, ...patch },
+        timetable: ws.timetable && patch.saturday !== undefined ? withSaturday(ws.timetable, patch.saturday) : ws.timetable,
+      })),
 
     updateSettings: (patch) => mutate((ws) => ({ ...ws, settings: { ...ws.settings, ...patch } })),
 

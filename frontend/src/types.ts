@@ -82,6 +82,8 @@ export interface Me {
 export interface Preferences {
   fillVertical: "top" | "bottom" | "none";
   fillHorizontal: "left" | "right" | "none";
+  /** l'établissement a cours le samedi */
+  saturday: boolean;
 }
 
 export interface Workspace {

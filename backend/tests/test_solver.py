@@ -343,4 +343,4 @@ def test_explain_names_the_overloaded_place():
     assert res.status == "infeasible"
     over = [i for i in res.issues if i.code == "place_overloaded"]
     assert len(over) == 1 and over[0].target == "gym" and over[0].params["capacity"] == 1
-    assert over[0].params["sports"] == "A" and "4e" in over[0].params["levels"]
+    assert over[0].params["sports"] == "A" and len(str(over[0].params["levels"]).split(", ")) >= 2

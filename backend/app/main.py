@@ -70,8 +70,8 @@ async def parse_timetable(file: UploadFile = File(...)):
 
 
 @app.get("/api/timetable/template")
-def template():
-    return Response(excel_io.template_workbook(), media_type=XLSX,
+def template(saturday: bool = False):
+    return Response(excel_io.template_workbook(saturday), media_type=XLSX,
                     headers={"Content-Disposition": 'attachment; filename="modele-emploi-du-temps.xlsx"'})
 
 

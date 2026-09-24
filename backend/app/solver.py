@@ -406,6 +406,7 @@ def explain(ws: Workspace) -> list[Issue]:
     model.m.minimize(sum(model.overflow.values()))
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = ws.settings.time_limit
+    solver.parameters.num_workers = 1  # diagnostic reproductible
     # chaque niveau est faisable seul et seule la capacité relie les niveaux : ce modèle n'échoue qu'en cas de
     # temps de calcul dépassé
     if solver.solve(model.m) not in (cp_model.OPTIMAL, cp_model.FEASIBLE):  # pragma: no cover
