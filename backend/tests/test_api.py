@@ -4,25 +4,15 @@ from __future__ import annotations
 
 import io
 
-import pytest
-from fastapi.testclient import TestClient
 from openpyxl import load_workbook
 
-from app import main
 from app.db import Store
 from app.excel_io import parse_timetable, template_workbook
 
+from .conftest import login
 from .factories import grid, level, place, slots, sport, workspace
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-
-
-@pytest.fixture
-def client(tmp_path):
-    store = Store(f"sqlite:///{tmp_path}/t.db")
-    main.app.dependency_overrides[main.get_store] = lambda: store
-    yield TestClient(main.app)
-    main.app.dependency_overrides.clear()
 
 
 def _body(max_solutions=5):
@@ -30,15 +20,6 @@ def _body(max_solutions=5):
     ws = workspace(tt, [level("6e", ["s"], mode="semestre")], [sport("s", ["gym"])], [place("gym", slots(tt))],
                    maxSolutions=max_solutions)
     return ws.model_dump(by_alias=True, mode="json")
-
-
-def test_get_store_default(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    main.get_store.cache_clear()
-    try:
-        assert isinstance(main.get_store(), Store)
-    finally:
-        main.get_store.cache_clear()
 
 
 def test_db_insert_then_update(tmp_path):
@@ -51,14 +32,15 @@ def test_db_insert_then_update(tmp_path):
     assert store.load().levels[0].name == "B"
 
 
-def test_me_roles_and_workspace(client, monkeypatch):
+def test_me_roles_and_workspace(client):
     assert client.get("/api/health").json() == {"status": "ok"}
-    assert client.get("/api/me").json() == {"role": "admin", "permissions": ["edit_workspace", "edit_rules"]}
+    assert client.get("/api/me").json() == {"sub": "4821", "email": "4821@orqea.dev", "name": "User 4821",
+                                            "role": "admin", "permissions": ["edit_workspace", "edit_rules"]}
     body = _body()
     body["settings"]["maxSolutions"] = 7
     assert client.put("/api/workspace", json=body).status_code == 200  # admin : règles modifiables
-    monkeypatch.setenv("SPORTSPLITTER_ROLE", "teacher")
-    assert client.get("/api/me").json() == {"role": "teacher", "permissions": ["edit_workspace"]}
+    login(client, role="user")
+    assert client.get("/api/me").json()["permissions"] == ["edit_workspace"]
     body["levels"][0]["name"] = "Sixième"
     assert client.put("/api/workspace", json=body).status_code == 200  # contenu modifiable
     body["settings"]["maxSolutions"] = 3

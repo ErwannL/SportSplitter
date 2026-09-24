@@ -3,10 +3,7 @@ import json
 import zipfile
 from datetime import datetime
 
-from fastapi.testclient import TestClient
 
-from app import main
-from app.db import Store
 from app.debug import dump_zip, summary
 from app.schemas import Workspace
 
@@ -49,13 +46,8 @@ def test_dump_relaxed_lists_warnings_and_violations():
     assert "extérieur" in files["LISEZMOI.txt"] and "(tronqué)" not in files["LISEZMOI.txt"]
 
 
-def test_dump_endpoint(tmp_path):
-    store = Store(f"sqlite:///{tmp_path}/d.db")
-    main.app.dependency_overrides[main.get_store] = lambda: store
-    try:
-        r = TestClient(main.app).get("/api/debug/dump")
-    finally:
-        main.app.dependency_overrides.clear()
+def test_dump_endpoint(client):
+    r = client.get("/api/debug/dump")
     assert r.status_code == 200 and r.headers["content-type"] == "application/zip"
     assert "dump_" in r.headers["content-disposition"]
     assert "[no_timetable]" in _files(r.content)["erreurs.txt"]
