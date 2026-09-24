@@ -344,3 +344,25 @@ def test_explain_names_the_overloaded_place():
     over = [i for i in res.issues if i.code == "place_overloaded"]
     assert len(over) == 1 and over[0].target == "gym" and over[0].params["capacity"] == 1
     assert over[0].params["sports"] == "A" and len(str(over[0].params["levels"]).split(", ")) >= 2
+
+
+def test_impossible_sports_are_ignored_so_others_can_repeat():
+    """Cas réel (dump du 24/09) : un sport impossible ne doit pas empêcher la répétition des autres."""
+    from .factories import grid, level, place, slots, sport, workspace
+
+    tt = grid(days=2, minutes=[60, 60])
+    ok = slots(tt)
+    ws = workspace(
+        tt,
+        [level("6e", ["foot", "tennis", "bad", "hand"], groups=2)],
+        [sport("foot", ["gym", "pis"]), sport("tennis", ["terrain"]), sport("bad", ["gym"], barrette=True),
+         sport("hand", ["gym"])],
+        # terrain : jamais une case libre toute une période ; gym de capacité 1 (barrette de 2 impossible)
+        [place("gym", ok), place("pis", ok), place("terrain", {ok[0]: ["Q1"], ok[1]: ["Q2"]})],
+    )
+    res = solve(ws)
+    assert res.status == "ok"
+    assert set(res.solutions[0].plan["6e"].values()) == {"foot"}  # tennis, bad et hand (1 seul lieu) ignorés
+    warned = {i.params.get("sport") for i in res.issues if i.severity == "warning"}
+    assert {"Tennis", "Hand", "Bad"} <= warned
+    assert any(i.code == "barrette_capacity" for i in res.issues)

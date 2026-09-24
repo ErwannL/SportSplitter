@@ -233,6 +233,25 @@ describe("PlanningPage : résultats", () => {
   });
 });
 
+describe("PlanningPage : avertissements du résultat", () => {
+  it("liste les sports ignorés avec leur solution, sans l'avertissement « relaxed »", () => {
+    setWs(readyWs());
+    useStore.setState({
+      result: result({
+        issues: [
+          { severity: "warning", code: "barrette_capacity", message: "m", target: "s1", targetType: "sport", params: { sport: "Foot", level: "6e", count: 2 } },
+          { severity: "warning", code: "relaxed", message: "r", params: { count: 1 } },
+          { severity: "error", code: "x", message: "e" },
+        ],
+      }),
+    });
+    renderAt(<PlanningPage />);
+    expect(screen.getByText("1 avertissement(s) : certains sports ont été ignorés")).toBeInTheDocument();
+    expect(screen.getByText(/aucun de ses lieux n'accueille 2 classes/)).toBeInTheDocument();
+    expect(screen.getByText(/passez « Classes » à 2/)).toBeInTheDocument();
+  });
+});
+
 describe("PlanningPage : problèmes gardés", () => {
   it("affiche les problèmes du dernier calcul marqués périmés", () => {
     setWs(readyWs());

@@ -42,6 +42,8 @@ FR: dict[str, str] = {
                                "leurs disponibilités ne permettent pas de couvrir toutes ses périodes."),
     "place_overloaded": ("« {place} » est demandé par trop de classes en même temps : {levels} le {day} à {time} "
                          "({segment}), alors qu'il n'accueille que {capacity} classe(s)."),
+    "barrette_capacity": ("« {sport} » est en barrette pour « {level} », mais aucun de ses lieux n'accueille "
+                          "{count} classes en même temps : le sport est ignoré pour ce niveau."),
     "no_level": "Aucun niveau n'est configuré.",
     "level_no_session": "Le niveau « {level} » n'a aucune séance dans son rythme.",
     "row_no_duration": "Le créneau « {row} » n'a pas d'heure de début et de fin lisible.",
@@ -81,6 +83,8 @@ EN: dict[str, str] = {
                                "their availability cannot cover all its periods."),
     "place_overloaded": ("“{place}” is needed by too many classes at once: {levels} on {day} at {time} "
                          "({segment}), but it only takes {capacity} class(es)."),
+    "barrette_capacity": ("“{sport}” is paired for “{level}”, but none of its places takes {count} classes at "
+                          "once: the sport is ignored for this level."),
     "no_level": "No level is set up.",
     "level_no_session": "Level “{level}” has no session in its rhythm.",
     "row_no_duration": "Slot “{row}” has no readable start and end time.",

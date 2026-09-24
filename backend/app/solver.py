@@ -103,6 +103,22 @@ def fill_cost(ws: Workspace, cand: Candidate) -> int:
     return h * rows + v
 
 
+def usable(ws: Workspace, lv: Level, sp, mine: list[Session]) -> bool:
+    """Le sport peut-il être pratiqué par ce niveau à au moins une période ? Sinon l'algorithme l'ignore
+    (il reste signalé par un avertissement) pour ne pas bloquer la répétition des autres sports."""
+    cfg = ws.settings
+    if sp.barrette and lv.groups < cfg.barrette_min_groups:
+        return False
+    caps = {p.id: p.capacity for p in ws.places}
+    known = [pid for pid in sp.place_ids if pid in caps]
+    if sp.barrette and max((caps[pid] for pid in known), default=0) < lv.groups:
+        return False  # aucun lieu ne peut accueillir toutes les classes ensemble
+    if not sp.barrette and lv.groups > 1 and cfg.separate_places_rule == "hard" and len(known) < lv.groups:
+        return False
+    return any(all(any(_available(ws, known, c, p) for c in q.candidates) for q in mine)
+               for p in MODE_PERIODS[lv.mode])
+
+
 def diagnose(ws: Workspace) -> list[Issue]:
     """Causes évidentes d'impossibilité, niveau par niveau."""
     cfg = ws.settings
@@ -136,6 +152,11 @@ def diagnose(ws: Workspace) -> list[Issue]:
             if sp.barrette and lv.groups < cfg.barrette_min_groups:
                 issues.append(issue("barrette_single", severity="warning", target=sp.id, target_type="sport",
                                     sport=sp.name, level=lv.name, min=cfg.barrette_min_groups))
+                continue
+            caps = [p.capacity for p in ws.places if p.id in sp.place_ids]
+            if sp.barrette and max(caps, default=0) < lv.groups:
+                issues.append(issue("barrette_capacity", severity="warning", target=sp.id, target_type="sport",
+                                    sport=sp.name, level=lv.name, count=lv.groups))
                 continue
             if (not sp.barrette and lv.groups > 1 and cfg.separate_places_rule == "hard"
                     and len([pid for pid in sp.place_ids if pid in {p.id for p in ws.places}]) < lv.groups):
@@ -177,9 +198,8 @@ class _Model:
 
         for lv in ws.levels:
             periods = MODE_PERIODS[lv.mode]
-            too_few = lv.groups < cfg.barrette_min_groups
-            lsports = [s for s in dict.fromkeys(lv.sport_ids)
-                       if s in sports and not (sports[s].barrette and too_few)]
+            own = [q for q in self.sessions if q.level.id == lv.id]
+            lsports = [s for s in dict.fromkeys(lv.sport_ids) if s in sports and usable(ws, lv, sports[s], own)]
             for p in periods:
                 for s in lsports:
                     self.x[lv.id, p, s] = m.new_bool_var(f"x_{lv.id}_{p}_{s}")
@@ -450,6 +470,7 @@ def solve(ws: Workspace) -> SolveResult:
         return SolveResult(status="infeasible", issues=issues + limits)
 
     col = _enumerate(ws, winter, sep, prio, fill, hint)
+    issues = issues + diag  # avertissements : sports ignorés car impossibles, etc.
     if winter or sep:
         issues = issues + [issue("relaxed", severity="warning", count=winter + sep)]
     return SolveResult(status="relaxed" if winter or sep else "ok", solutions=col.solutions,

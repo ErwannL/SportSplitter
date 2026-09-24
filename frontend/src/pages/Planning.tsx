@@ -313,6 +313,7 @@ function ResultView() {
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
   const sols = result!.solutions;
+  const warnings = result!.issues.filter((i) => i.severity === "warning" && i.code !== "relaxed");
   const sol = sols[Math.min(idx, sols.length - 1)];
   const contents = slotContents(ws, sol, seg, week % sol.weeks);
   const winter = new Set(ws.settings.winterSegments);
@@ -357,6 +358,24 @@ function ResultView() {
             </ul>
           </div>
         </div>
+      )}
+
+      {warnings.length > 0 && (
+        <details className="mb-4 rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm shadow-sm">
+          <summary className="cursor-pointer font-medium text-amber-700">{t("result.warnings", { count: warnings.length })}</summary>
+          <p className="mt-1 mb-2 text-xs text-slate-500">{t("result.warningsHint")}</p>
+          <ul className="grid max-h-72 gap-2 overflow-y-auto lg:grid-cols-2">
+            {warnings.map((i, k) => (
+              <IssueItem
+                key={k}
+                warning
+                to={targetLink(i.targetType, i.target, ws)}
+                message={translateCode(lang, i.code, i.params, i.message)}
+                fix={translateFix(lang, i.code, i.params)}
+              />
+            ))}
+          </ul>
+        </details>
       )}
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
