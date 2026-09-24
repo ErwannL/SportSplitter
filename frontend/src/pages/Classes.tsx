@@ -2,6 +2,7 @@ import { AlertTriangle, GraduationCap, Sparkles } from "lucide-react";
 import type { Key } from "../lib/i18n";
 import { MODE_PERIODS } from "../lib/periods";
 import { norm, timetableLevels } from "../lib/readiness";
+import { TabIssues } from "../components/IssueList";
 import { useT } from "../prefs";
 import { LEVEL_PRESETS, missingLevels, useStore } from "../store";
 import { AddColumn, AddPicker, Board, Button, Chip, Column, EmptyState, PageHeader, SectionLabel, Segmented } from "../components/ui";
@@ -26,6 +27,7 @@ export function ClassesPage() {
           </Button>
         ))}
       />
+      <TabIssues types={["level"]} />
 
       {missing.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

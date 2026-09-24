@@ -8,6 +8,7 @@ import { colorDistance, isTooClose, placeColor, SWATCHES, TOO_CLOSE } from "../l
 import { segmentKey, type Key } from "../lib/i18n";
 import { applyBrush, brushCovered, BRUSHES, removeBrush, SEGMENT_HINT, SEGMENTS, type Brush } from "../lib/periods";
 import { slotId } from "../lib/readiness";
+import { TabIssues } from "../components/IssueList";
 import { useT } from "../prefs";
 import { useStore } from "../store";
 import type { Place, Segment } from "../types";
@@ -47,6 +48,7 @@ export function PlacesPage() {
     return (
       <>
         <PageHeader step={4} title={t("places.title")} subtitle={t("places.subtitle")} />
+      <TabIssues types={["place"]} />
         <EmptyState
           icon={<CalendarX2 />}
           title={t("places.needTimetable")}
@@ -59,6 +61,7 @@ export function PlacesPage() {
   return (
     <>
       <PageHeader step={4} title={t("places.title")} subtitle={t("places.subtitle")} />
+      <TabIssues types={["place"]} />
       {ws.places.length === 0 ? (
         <EmptyState
           icon={<MapPin />}

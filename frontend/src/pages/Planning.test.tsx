@@ -176,3 +176,15 @@ describe("PlanningPage : résultats", () => {
     expect(screen.queryByText("extérieur")).toBeNull();
   });
 });
+
+describe("PlanningPage : problèmes gardés", () => {
+  it("affiche les problèmes du dernier calcul marqués périmés", () => {
+    setWs(readyWs());
+    useStore.setState({
+      lastIssues: { stale: true, issues: [{ severity: "error", code: "no_solution", message: "m", targetType: "place" }] },
+    });
+    renderAt(<PlanningPage />);
+    expect(screen.getByText("Aucun planning possible")).toBeInTheDocument();
+    expect(screen.getByText("Dernier calcul fait avant vos modifications")).toBeInTheDocument();
+  });
+});

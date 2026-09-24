@@ -1,5 +1,6 @@
 import { Volleyball } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { TabIssues } from "../components/IssueList";
 import { useT } from "../prefs";
 import { useStore } from "../store";
 import { AddColumn, AddPicker, Board, Button, Checkbox, Chip, Column, EmptyState, PageHeader, SectionLabel } from "../components/ui";
@@ -17,6 +18,7 @@ export function SportsPage() {
         title={t("sports.title")}
         subtitle={t("sports.subtitle")}
       />
+      <TabIssues types={["sport"]} />
       {ws.sports.length === 0 ? (
         <EmptyState
           icon={<Volleyball />}

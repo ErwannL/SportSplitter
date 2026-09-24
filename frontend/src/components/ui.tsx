@@ -3,6 +3,7 @@ import { Check, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useT } from "../prefs";
+import { IssueBadge } from "./IssueList";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -151,6 +152,7 @@ export function Column({
       <header className="flex items-center gap-1 border-b border-slate-100 px-3 py-3">
         <InlineEdit value={title} onChange={onRename} className="text-lg font-semibold text-slate-900" />
         {badge}
+        <IssueBadge id={id} />
         <IconButton label={t("common.delete")} onClick={onDelete} className="hover:bg-rose-50 hover:text-rose-600">
           <Trash2 size={16} />
         </IconButton>

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api } from "./lib/api";
 import { placeColor } from "./lib/colors";
 import { norm, timetableLevels } from "./lib/readiness";
-import type { Level, Place, Settings, SolveResult, Sport, Timetable, Workspace } from "./types";
+import type { Issue, Level, Place, Settings, SolveResult, Sport, Timetable, Workspace } from "./types";
 
 export const LEVEL_PRESETS: Record<string, string[]> = {
   Primaire: ["CP", "CE1", "CE2", "CM1", "CM2"],
@@ -49,6 +49,8 @@ interface State {
   loaded: boolean;
   save: SaveState;
   result: SolveResult | null;
+  /** Problèmes du dernier calcul impossible ; gardés (marqués « périmés ») après modification. */
+  lastIssues: { issues: Issue[]; stale: boolean } | null;
   load: () => Promise<void>;
   setTimetable: (t: Timetable | null) => void;
   addLevel: (name?: string) => string;
@@ -74,7 +76,8 @@ let pending = false;
 export const useStore = create<State>((set, get) => {
   /** Modifie l'espace de travail, invalide le résultat et sauvegarde (différé). */
   const mutate = (fn: (ws: Workspace) => Workspace) => {
-    set({ ws: fn(get().ws), result: null, save: "saving" });
+    const last = get().lastIssues;
+    set({ ws: fn(get().ws), result: null, save: "saving", lastIssues: last && { ...last, stale: true } });
     clearTimeout(timer);
     pending = true;
     timer = setTimeout(flush, 500);
@@ -99,6 +102,7 @@ export const useStore = create<State>((set, get) => {
     loaded: false,
     save: "idle",
     result: null,
+    lastIssues: null,
 
     async load() {
       try {
@@ -187,7 +191,11 @@ export const useStore = create<State>((set, get) => {
 
     updateSettings: (patch) => mutate((ws) => ({ ...ws, settings: { ...ws.settings, ...patch } })),
 
-    setResult: (result) => set({ result }),
+    setResult: (result) =>
+      set({
+        result,
+        lastIssues: result?.status === "infeasible" ? { issues: result.issues, stale: false } : result ? null : get().lastIssues,
+      }),
 
     flush,
 

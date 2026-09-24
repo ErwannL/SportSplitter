@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import {
-  AlertCircle, ArrowRight, CheckCircle2, Lightbulb, ChevronLeft, ChevronRight, CircleAlert, Download, FileSpreadsheet, Loader2, RefreshCw,
+  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Download, FileSpreadsheet, Loader2, RefreshCw,
   Send, Shuffle, Snowflake, Upload, X,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { textOn } from "../lib/colors";
 import { periodKey, segmentKey, translateCode, translateFix } from "../lib/i18n";
 import { usePrefs, useT } from "../prefs";
+import { IssueItem } from "../components/IssueList";
 import { TimetableGrid } from "../components/TimetableGrid";
 import { Button, IconButton, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
@@ -96,38 +97,11 @@ function ErrorBox({ text }: { text: string }) {
   );
 }
 
-function IssueItem({ to, message, fix, warning }: { to: string; message: string; fix: string | null; warning?: boolean }) {
-  const t = useT();
-  return (
-    <li>
-      <Link
-        to={to}
-        className={clsx(
-          "group block rounded-xl border-l-4 bg-slate-50 px-3 py-2 text-sm transition hover:bg-indigo-50",
-          warning ? "border-amber-400" : "border-rose-500",
-        )}
-      >
-        <span className="flex items-start justify-between gap-2 text-slate-800">
-          {message}
-          <ArrowRight size={14} className="mt-0.5 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-indigo-600" />
-        </span>
-        {fix && (
-          <span className="mt-1 flex items-start gap-1.5 text-xs text-slate-500">
-            <Lightbulb size={13} className="mt-px shrink-0 text-amber-500" />
-            <span>
-              <b className="font-semibold text-slate-600">{t("fix.label")}</b> {fix}
-            </span>
-          </span>
-        )}
-      </Link>
-    </li>
-  );
-}
-
 function SetupView() {
   const t = useT();
   const lang = usePrefs((p) => p.lang);
-  const { ws, result, setResult, setTimetable } = useStore();
+  const { ws, setResult, setTimetable } = useStore();
+  const last = useStore((st) => st.lastIssues);
   const status = readiness(ws);
   const ready = isReady(status);
   const imp = useImport();
@@ -233,12 +207,13 @@ function SetupView() {
               </ul>
             )}
           </div>
-          {result && result.status === "infeasible" && (
+          {last && (
             <div className="rounded-2xl border border-rose-200 bg-white p-5 shadow-sm">
               <h3 className="mb-1 flex items-center gap-2 font-semibold text-rose-600"><AlertCircle size={18} /> {t("planning.none")}</h3>
               <p className="mb-3 text-xs text-slate-500">{t("planning.noneHint")}</p>
+              {last.stale && <p className="mb-3 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-700">{t("issues.stale")}</p>}
               <ul className="space-y-2">
-                {[...result.issues].sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1)).map((i, k) => (
+                {[...last.issues].sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1)).map((i, k) => (
                   <IssueItem
                     key={k}
                     to={targetLink(i.targetType, i.target, ws)}
