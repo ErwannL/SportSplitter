@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 import pytest
@@ -103,7 +103,7 @@ def test_expired_jti_are_purged(tmp_path):
     client = make_client(tmp_path)
     store = client.app.state.store
     with store.session() as s, s.begin():
-        s.add(UsedJti(jti="old", expires_at=datetime.now(timezone.utc) - timedelta(minutes=5)))
+        s.add(UsedJti(jti="old", expires_at=datetime.now(UTC) - timedelta(minutes=5)))
     assert _sso(client, mint()).status_code == 204
     with store.session() as s:
         assert s.get(UsedJti, "old") is None

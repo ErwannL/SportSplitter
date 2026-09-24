@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.schemas import Cell, Level, Place, Settings, Sport, Timetable, TimeRow, Workspace
+from app.schemas import Cell, Level, Place, Settings, Sport, TimeRow, Timetable, Workspace
 
 ALL = ["Q1", "Q2", "Q3", "Q4"]
 

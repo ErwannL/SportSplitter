@@ -8,8 +8,19 @@ from datetime import time
 import pytest
 from openpyxl import Workbook, load_workbook
 
-from app.excel_io import (_hex, _text_color, cell_contents, export_solutions, fill_durations, parse_entries,
-                          parse_time_label, parse_timetable, template_workbook, to_minutes, TimetableError)
+from app.excel_io import (
+    TimetableError,
+    _hex,
+    _text_color,
+    cell_contents,
+    export_solutions,
+    fill_durations,
+    parse_entries,
+    parse_time_label,
+    parse_timetable,
+    template_workbook,
+    to_minutes,
+)
 from app.schemas import Solution, TimeRow, Violation
 from app.solver import solve
 

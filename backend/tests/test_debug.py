@@ -1,8 +1,7 @@
 import io
 import json
 import zipfile
-from datetime import datetime
-
+from datetime import UTC, datetime
 
 from app.debug import dump_zip, summary
 from app.schemas import Workspace
@@ -26,7 +25,7 @@ def test_summary_without_timetable_and_dangling_refs():
 def test_dump_infeasible_lists_errors():
     tt = grid(days=1, minutes=[60], closed={(0, 0)})
     ws = workspace(tt, [level("6e", ["a"], cycle=[[60], []])], [sport("a", ["gym"])], [place("gym", slots(tt))])
-    name, data = dump_zip(ws, datetime(2026, 9, 24, 20, 15, 3))
+    name, data = dump_zip(ws, datetime(2026, 9, 24, 20, 15, 3, tzinfo=UTC))
     assert name == "dump_2026-09-24_20-15-03.zip"
     files = _files(data)
     assert set(files) == {"LISEZMOI.txt", "erreurs.txt", "avertissements.txt", "donnees.json", "resultat.json"}

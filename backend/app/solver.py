@@ -28,8 +28,18 @@ from math import lcm
 from ortools.sat.python import cp_model
 
 from .messages import issue, render
-from .schemas import (MODE_PERIODS, PERIODS, Assignment, Issue, Level, Placement, Solution, SolveResult, Violation,
-                      Workspace)
+from .schemas import (
+    MODE_PERIODS,
+    PERIODS,
+    Assignment,
+    Issue,
+    Level,
+    Placement,
+    Solution,
+    SolveResult,
+    Violation,
+    Workspace,
+)
 from .validation import blocking, validate
 
 

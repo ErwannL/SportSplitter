@@ -20,7 +20,7 @@ PUBLIC_URL = "http://localhost:8090"
 
 
 def make_config(**over) -> Config:
-    base = dict(sso_secret=SSO_SECRET, session_secret=SESSION_SECRET, public_url=PUBLIC_URL)
+    base = {"sso_secret": SSO_SECRET, "session_secret": SESSION_SECRET, "public_url": PUBLIC_URL}
     base.update(over)
     return Config(**base)
 

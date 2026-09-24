@@ -11,8 +11,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from .messages import render
-from .schemas import (MODE_PERIODS, PERIODS, SEGMENTS, Cell, Entry,
-                      Solution, Timetable, TimeRow, Workspace)
+from .schemas import MODE_PERIODS, PERIODS, SEGMENTS, Cell, Entry, Solution, TimeRow, Timetable, Workspace
 
 
 class TimetableError(ValueError):
@@ -22,8 +21,8 @@ class TimetableError(ValueError):
 CLOSED_WORDS = {"x", "fermé", "ferme", "fermée", "closed", "-", "/"}
 _TIME_SPLIT = re.compile(r"\s*(?:-|–|—|à|\n|/)\s*")
 _GROUPS = [
-    re.compile(r"^(?P<name>.+?)\s*[x×*]\s*(?P<n>\d+)$", re.I),
-    re.compile(r"^(?P<n>\d+)\s*[x×*]\s*(?P<name>.+)$", re.I),
+    re.compile(r"^(?P<name>.+?)\s*[x×*]\s*(?P<n>\d+)$", re.IGNORECASE),
+    re.compile(r"^(?P<n>\d+)\s*[x×*]\s*(?P<name>.+)$", re.IGNORECASE),
     re.compile(r"^(?P<name>.+?)\s*\((?P<n>\d+)\)$"),
 ]
 
@@ -89,19 +88,20 @@ def parse_entries(text: str) -> list[Entry]:
 def parse_timetable(data: bytes, file_name: str = "") -> Timetable:
     try:
         wb = load_workbook(io.BytesIO(data), data_only=True)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise TimetableError("Fichier Excel illisible.") from exc
     ws = wb.worksheets[0]
 
     header_row = None
     for r in range(1, min(ws.max_row, 20) + 1):
         vals = [ws.cell(r, c).value for c in range(1, ws.max_column + 1)]
-        if sum(1 for v in vals[1:] if v not in (None, "")) >= 1 and (
-            vals[0] is None or "heure" in str(vals[0]).lower() or r == 1
+        if (
+            sum(1 for v in vals[1:] if v not in (None, "")) >= 1
+            and (vals[0] is None or "heure" in str(vals[0]).lower() or r == 1)
+            and any(isinstance(v, str) and v.strip() for v in vals[1:])
         ):
-            if any(isinstance(v, str) and v.strip() for v in vals[1:]):
-                header_row = r
-                break
+            header_row = r
+            break
     if header_row is None:
         raise TimetableError("Impossible de trouver la ligne d'en-tête (Heures, Lundi, Mardi…).")
 
@@ -313,7 +313,7 @@ def template_workbook(saturday: bool = False) -> bytes:
     sh.title = "Emploi du temps"
     days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"] + (["Samedi"] if saturday else [])
     sh.append(["Heures", *days])
-    fmt = lambda m: f"{m // 60}h{m % 60:02d}" if m % 60 else f"{m // 60}h"  # noqa: E731
+    fmt = lambda m: f"{m // 60}h{m % 60:02d}" if m % 60 else f"{m // 60}h"
     for start in range(8 * 60, 18 * 60, 30):
         closed = "X" if 12 * 60 <= start < 13 * 60 else None
         sh.append([f"{fmt(start)} - {fmt(start + 30)}", *[closed] * len(days)])
@@ -327,4 +327,4 @@ def template_workbook(saturday: bool = False) -> bytes:
     return buf.getvalue()
 
 
-__all__ = ["parse_timetable", "export_solutions", "template_workbook", "TimetableError"]
+__all__ = ["TimetableError", "export_solutions", "parse_timetable", "template_workbook"]

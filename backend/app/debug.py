@@ -61,7 +61,7 @@ def issues_text(result: SolveResult, severity: str) -> str:
 
 
 def dump_zip(ws: Workspace, now: datetime | None = None) -> tuple[str, bytes]:
-    stamp = (now or datetime.now()).strftime("%Y-%m-%d_%H-%M-%S")
+    stamp = (now or datetime.now().astimezone()).strftime("%Y-%m-%d_%H-%M-%S")
     result = solve(ws)
     head = (f"Dump SportSplitter du {stamp}\nStatut du calcul : {result.status} ; "
             f"{result.total_found} solution(s){' (tronqué)' if result.truncated else ''}\n\n")

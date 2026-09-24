@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, DateTime, Integer, String, create_engine, delete, func, inspect, select, text
 from sqlalchemy.exc import IntegrityError
@@ -83,7 +83,7 @@ class Store:
     def login(self, sub: str, email: str, name: str, role: str, jti: str | None = None,
               jti_expires: datetime | None = None) -> UserRow:
         """Consomme le jti (s'il y en a un) et crée ou met à jour l'utilisateur, dans une seule transaction."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         try:
             with self.session() as s, s.begin():
                 s.execute(delete(UsedJti).where(UsedJti.expires_at < now))
@@ -143,7 +143,7 @@ class Store:
     def save(self, sub: str, ws: Workspace) -> None:
         data = ws.model_dump(by_alias=True, mode="json")
         data.pop("settings", None)  # les règles vivent dans app_settings
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self.session() as s, s.begin():
             row = s.scalars(select(WorkspaceRow).where(WorkspaceRow.owner_sub == sub)).first()
             if row is None:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, FastAPI, File, HTTPException, Request, UploadFile
@@ -106,7 +106,7 @@ def sso(body: SSORequest, cfg: Config = Depends(get_config), store: Store = Depe
     try:
         h = auth.verify_handoff(body.token, cfg)
         store.login(h.sub, h.email, h.name, h.role, jti=h.jti,
-                    jti_expires=datetime.fromtimestamp(h.exp + auth.CLOCK_LEEWAY, timezone.utc))
+                    jti_expires=datetime.fromtimestamp(h.exp + auth.CLOCK_LEEWAY, UTC))
     except auth.SSOError as err:
         log.warning("connexion Orqea refusée : code=%s sub=%s", err.code, err.sub)
         raise ApiError(401, err.code) from None
