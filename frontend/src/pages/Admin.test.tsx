@@ -30,7 +30,22 @@ describe("AdminPage", () => {
     expect(settings()).toMatchObject({ priorityRequired: false, allowRepeat: false });
     await u.click(screen.getByText("Interdits"));
     expect(screen.queryAllByRole("spinbutton")).toHaveLength(3);
+    await u.click(screen.getByLabelText("Plusieurs séances d'un niveau le même jour"));
+    expect(settings().sameDayAllowed).toBe(true);
+    expect(screen.queryByText("Nombre maximal de lieux partagés tolérés")).toBeNull();
+    await u.click(screen.getByText("Lieux différents souhaités"));
+    expect(settings().separatePlacesRule).toBe("soft");
+    const spins = screen.getAllByRole("spinbutton");
+    expect(spins).toHaveLength(4);
+    fireEvent.change(spins[0], { target: { value: "5" } });
+    expect(settings().maxSeparateViolations).toBe(5);
+    await u.click(screen.getByText("Libre"));
+    expect(settings().separatePlacesRule).toBe("off");
+    expect(screen.queryAllByRole("spinbutton")).toHaveLength(3);
+    await u.click(screen.getByText("Lieux différents obligatoires"));
+    expect(settings().separatePlacesRule).toBe("hard");
     await u.click(screen.getByText(/Rétablir/));
+    expect(settings()).toMatchObject({ sameDayAllowed: false, separatePlacesRule: "hard", maxSeparateViolations: 1 });
     expect(settings().winterRule).toBe("soft");
   });
   it("lecture seule", async () => {

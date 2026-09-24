@@ -19,24 +19,30 @@ describe("ClassesPage", () => {
     expect(ws().levels[5].name).toBe("Niveau 6");
     expect(screen.queryByText("inutilisé")).toBeNull();
   });
-  it("niveaux manquants, sports, mode", async () => {
+  it("sports, mode, rythme, classes simultanées", async () => {
     const w = readyWs();
     w.levels = [
-      { id: "l6", name: "6e", mode: "trimestre", sportIds: ["s1", "ghost"] },
-      { id: "lx", name: "Autre", mode: "semestre", sportIds: [] },
+      { id: "l6", name: "6e", mode: "trimestre", sportIds: ["s1", "ghost"], groups: 1, cycle: [[120]] },
+      { id: "lx", name: "Autre", mode: "semestre", sportIds: [], groups: 20, cycle: [[60], []] },
     ];
     w.sports.push({ id: "s2", name: "Hand", priority: false, barrette: false, placeIds: [] });
     setWs(w);
     renderAt(<ClassesPage />, "/classes");
     const u = userEvent.setup();
-    expect(screen.getByText("5e")).toBeInTheDocument();
-    expect(screen.getByText("inutilisé")).toBeInTheDocument();
+    expect(screen.queryByText("5e")).toBeNull();
+    expect(screen.queryByText("inutilisé")).toBeNull();
     expect(screen.getByText("PRIO")).toBeInTheDocument();
     expect(screen.getByText(/Moins de sports/)).toBeInTheDocument();
-    await u.click(screen.getByText("Les créer"));
-    expect(ws().levels.map((l) => l.name)).toEqual(["6e", "Autre", "5e"]);
     const six = within(document.getElementById("col-l6")!);
     const other = within(document.getElementById("col-lx")!);
+    await u.click(six.getByLabelText("Plus"));
+    expect(ws().levels[0].groups).toBe(2);
+    expect(six.getByLabelText("Moins")).toBeEnabled();
+    expect(other.getByLabelText("Plus")).toBeDisabled();
+    await u.click(other.getByLabelText("Moins"));
+    expect(ws().levels[1].groups).toBe(19);
+    await u.click(six.getByText("2 sem."));
+    expect(ws().levels[0].cycle).toEqual([[120], [120]]);
     await u.click(six.getByText("Semestre"));
     expect(ws().levels[0].mode).toBe("semestre");
     await u.click(six.getByLabelText("Retirer Foot"));
@@ -53,6 +59,6 @@ describe("ClassesPage", () => {
     await u.type(name, "4e{Enter}");
     expect(ws().levels[1].name).toBe("4e");
     await u.click(other.getByLabelText("Supprimer"));
-    expect(ws().levels).toHaveLength(2);
+    expect(ws().levels).toHaveLength(1);
   });
 });

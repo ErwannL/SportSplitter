@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readyWs } from "../test/utils";
-import { readiness, slotId, targetLink, timetableLevels } from "./readiness";
+import { readiness, slotId, targetLink } from "./readiness";
 
 describe("readiness (compléments)", () => {
   it("sport inconnu, niveaux sans sport, pas de timetable", () => {
@@ -8,7 +8,6 @@ describe("readiness (compléments)", () => {
     ws.levels[0].sportIds = ["ghost"];
     const s = readiness(ws);
     expect(s.problems.some((p) => p.key === "ready.noSport")).toBe(true);
-    expect(timetableLevels({ ...ws, timetable: null })).toEqual([]);
     expect(readiness({ ...ws, timetable: null, levels: [], sports: [], places: [] }).places).toBe(false);
   });
   it("sport avec lieu inexistant", () => {

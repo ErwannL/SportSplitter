@@ -27,5 +27,11 @@ describe("TimetableGrid", () => {
     fireEvent.pointerDown(screen.getByText("cell 0-1").parentElement!);
     expect(down).toHaveBeenCalledTimes(1);
     expect(enter).toHaveBeenCalledTimes(1);
+    const closed = vi.fn();
+    rerender(<TimetableGrid timetable={tt} renderCell={(_, id) => <span>cell {id}</span>} onClosedPointerDown={closed} />);
+    fireEvent.pointerDown(screen.getByText("cell 0-0").parentElement!);
+    fireEvent.pointerDown(screen.getByText("cell 0-1").parentElement!);
+    expect(closed).toHaveBeenCalledTimes(1);
+    expect(closed.mock.calls[0][1]).toBe("0-1");
   });
 });

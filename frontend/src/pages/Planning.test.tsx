@@ -5,18 +5,21 @@ import { describe, expect, it, vi } from "vitest";
 import { useStore } from "../store";
 import { jsonRes, mockFetch, readyWs, renderAt, setWs } from "../test/utils";
 import type { Solution, SolveResult, Workspace } from "../types";
-import { PlanningPage } from "./Planning";
+import { PlanningPage, slotContents } from "./Planning";
 
 const fileInput = () => document.querySelector<HTMLInputElement>('input[type="file"]')!;
 const xlsx = () => new File(["x"], "edt.xlsx");
 
-const solution = (index: number): Solution => ({
+const A = { session: 0, week: 0, day: 0, row: 0, span: 1, minutes: 120 };
+const solution = (index: number, weeks = 1): Solution => ({
   index,
   plan: { l6: { T1: "s1", T2: "ghost" }, l5: { S1: "s1" } },
+  weeks,
   assignments: [
-    { slotId: "0-0", levelId: "l6", period: "T1", sportId: "s1", placements: [{ placeId: "p1", groups: 2 }] },
-    { slotId: "0-0", levelId: "zz", period: "S1", sportId: "zz", placements: [{ placeId: "zz", groups: 1 }] },
-    { slotId: "1-0", levelId: "l5", period: "S2", sportId: "s1", placements: [{ placeId: "p1", groups: 1 }] },
+    { ...A, slotId: "0-0", levelId: "l6", period: "T1", sportId: "s1", placements: [{ placeId: "p1", groups: 2 }], span: 2 },
+    { ...A, slotId: "0-0", levelId: "zz", period: "S1", sportId: "zz", placements: [{ placeId: "zz", groups: 1 }] },
+    { ...A, slotId: "1-0", levelId: "l5", period: "S1", sportId: "ghost", placements: [{ placeId: "zz", groups: 1 }], day: 1 },
+    { ...A, slotId: "1-0", levelId: "l5", period: "S1", sportId: "s1", placements: [{ placeId: "p1", groups: 1 }], day: 1, week: 1, minutes: 60 },
   ],
   violations: index === 0 ? [{ rule: "winter_outdoor", message: "m", params: { level: "6e", place: "Stade", period: "T2" } }] : [],
 });
@@ -55,7 +58,8 @@ describe("PlanningPage : import", () => {
 
 describe("PlanningPage : configuration", () => {
   it("incomplet : problèmes cliquables, remplacer en erreur, retirer", async () => {
-    const ws: Workspace = { ...readyWs(), levels: [readyWs().levels[0]] };
+    const ws: Workspace = readyWs();
+    ws.levels[1].cycle = [[]];
     ws.timetable = { ...ws.timetable!, fileName: "" };
     setWs(ws);
     mockFetch(async () => jsonRes({ detail: "Mauvais" }, 400));
@@ -67,6 +71,20 @@ describe("PlanningPage : configuration", () => {
     expect(await screen.findByText("Mauvais")).toBeInTheDocument();
     await u.click(screen.getByText(/niveau « 5e »/));
     expect(screen.getByTestId("loc")).toHaveTextContent("/classes");
+  });
+  it("clic sur une case : fermer puis rouvrir", () => {
+    setWs(readyWs());
+    renderAt(<PlanningPage />);
+    const closed = () => useStore.getState().ws.timetable!.cells.map((c) => c.closed);
+    expect(closed()).toEqual([false, false, true]);
+    expect(screen.getAllByText("Fermé")).toHaveLength(1);
+    fireEvent.pointerDown(screen.getByText("Fermé").parentElement!);
+    expect(closed()).toEqual([false, false, false]);
+    expect(screen.queryByText("Fermé")).toBeNull();
+    const first = document.querySelector<HTMLElement>(".cursor-pointer")!;
+    fireEvent.pointerDown(first);
+    expect(closed()).toEqual([true, false, false]);
+    expect(screen.getAllByText("Fermé")).toHaveLength(1);
   });
   it("retirer l'emploi du temps et remplacer", async () => {
     setWs(readyWs());
@@ -186,5 +204,59 @@ describe("PlanningPage : problèmes gardés", () => {
     renderAt(<PlanningPage />);
     expect(screen.getByText("Aucun planning possible")).toBeInTheDocument();
     expect(screen.getByText("Dernier calcul fait avant vos modifications")).toBeInTheDocument();
+  });
+});
+
+describe("slotContents", () => {
+  it("lignes couvertes, première vs suite, semaines du cycle, inconnus", () => {
+    const ws = readyWs();
+    const sol = solution(0, 2);
+    const w0 = slotContents(ws, sol, "Q1", 0);
+    expect(w0.get("0-0")).toEqual([
+      { level: "6e", sport: "Foot", place: "Stade", color: "#10b981", groups: 2, outdoor: true, first: true, time: "8h – " },
+    ]);
+    expect(w0.get("0-1")![0]).toMatchObject({ level: "6e", first: false, time: "8h – " });
+    expect(w0.get("1-0")).toEqual([
+      { level: "5e", sport: "?", place: "?", color: "#94a3b8", groups: 1, outdoor: false, first: true, time: "8h – 10h" },
+    ]);
+    expect(w0.get("1-0")).toHaveLength(1);
+    const w1 = slotContents(ws, sol, "Q1", 1);
+    expect(w1.get("0-0")![0].level).toBe("6e");
+    expect(w1.get("1-0")).toEqual([expect.objectContaining({ level: "5e", sport: "Foot", time: "8h – 10h" })]);
+    expect(slotContents(ws, sol, "Q4", 0).size).toBe(0);
+    const out = { ...sol, assignments: [{ ...sol.assignments[0], row: 7, span: 1 }] };
+    expect(slotContents(ws, out, "Q1", 0).get("0-7")![0].time).toBe(" – ");
+  });
+});
+
+describe("PlanningPage : semaines et séances longues", () => {
+  it("sélecteur de semaine et affichage sur plusieurs lignes", async () => {
+    setWs(readyWs());
+    useStore.setState({ result: result({ solutions: [solution(0, 2)] }) });
+    renderAt(<PlanningPage />);
+    const u = userEvent.setup();
+    const w1 = screen.getByText("Semaine 1");
+    const w2 = screen.getByText("Semaine 2");
+    expect(w1).toHaveAttribute("aria-pressed", "true");
+    const sixes = screen.getAllByTitle("6e · Foot · Stade · 8h –", { normalizer: (x) => x.trim() });
+    expect(sixes).toHaveLength(2);
+    expect(sixes[0]).not.toHaveClass("opacity-80");
+    expect(sixes[1]).toHaveClass("opacity-80");
+    expect(screen.queryByTitle(/5e · Foot/)).toBeNull();
+    await u.click(w2);
+    expect(w2).toHaveAttribute("aria-pressed", "true");
+    expect(w1).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByTitle("5e · Foot · Stade · 8h – 10h")).toBeInTheDocument();
+    expect(screen.queryByTitle(/5e · \?/)).toBeNull();
+    const five = () => screen.getByTitle("5e · Foot · Stade · 8h – 10h");
+    expect(five().querySelector(".lucide-snowflake")).toBeNull();
+    await u.click(screen.getByText("Déc – Janv"));
+    expect(five().querySelector(".lucide-snowflake")).not.toBeNull();
+  });
+  it("pas de sélecteur pour un cycle d'une semaine", () => {
+    setWs(readyWs());
+    useStore.setState({ result: result() });
+    renderAt(<PlanningPage />);
+    expect(screen.queryByText("Semaine 1")).toBeNull();
   });
 });

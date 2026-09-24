@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { jsonRes, mockFetch, readyWs } from "./test/utils";
-import { emptyWorkspace, hydrate, missingLevels, newId, useStore } from "./store";
+import type { Level } from "./types";
+import { emptyWorkspace, hydrate, newId, useStore } from "./store";
 
 const st = () => useStore.getState();
 
@@ -25,7 +26,7 @@ describe("store", () => {
     const f = mockFetch(async () => jsonRes({}));
     st().addLevel();
     expect(st().save).toBe("saving");
-    expect(st().ws.levels[0].name).toBe("Niveau 1");
+    expect(st().ws.levels[0]).toMatchObject({ name: "Niveau 1", groups: 1, cycle: [[120]] });
     await vi.advanceTimersByTimeAsync(600);
     expect(f).toHaveBeenCalledTimes(1);
     expect(st().save).toBe("saved");
@@ -41,6 +42,7 @@ describe("store", () => {
     useStore.setState({ ws: readyWs() });
     st().addLevels(["6E", "4e"]);
     expect(st().ws.levels.map((l) => l.name)).toEqual(["6e", "5e", "4e"]);
+    expect(st().ws.levels[2]).toMatchObject({ groups: 1, cycle: [[120]] });
     st().updateLevel("l6", { name: "Sixième" });
     st().updateLevel("nope", { name: "?" });
     st().removeLevel("l5");
@@ -67,8 +69,12 @@ describe("store", () => {
   it("helpers", () => {
     expect(newId("a")).not.toBe(newId("a"));
     expect(hydrate({}).settings.winterRule).toBe("soft");
-    const ws = readyWs();
-    ws.levels = [];
-    expect(missingLevels(ws)).toEqual(["6e", "5e"]);
+    expect(hydrate({}).settings).toMatchObject({ sameDayAllowed: false, separatePlacesRule: "hard", maxSeparateViolations: 1 });
+    expect(hydrate({}).levels).toEqual([]);
+    const old = { id: "a", name: "6e", mode: "trimestre", sportIds: [] } as unknown as Level;
+    expect(hydrate({ levels: [old, readyWs().levels[1]] }).levels).toEqual([
+      { ...old, groups: 1, cycle: [[120]] },
+      readyWs().levels[1],
+    ]);
   });
 });

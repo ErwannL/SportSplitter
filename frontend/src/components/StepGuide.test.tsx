@@ -33,7 +33,7 @@ describe("StepGuide", () => {
   });
   it("page courante faite, étapes suivantes faites : première à faire", () => {
     const ws = readyWs();
-    ws.levels = ws.levels.slice(0, 1);
+    ws.levels[1].cycle = [[]];
     setWs(ws);
     renderAt(<StepGuide />, "/lieux");
     expect(next()).toHaveTextContent("Classes");
