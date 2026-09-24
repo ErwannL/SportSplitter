@@ -1,0 +1,75 @@
+"""Messages métier : un code + des paramètres, traduits côté interface.
+
+Le texte français sert de repli (export Excel, API brute).
+"""
+
+from __future__ import annotations
+
+from .schemas import Issue, TargetType
+
+FR: dict[str, str] = {
+    "no_timetable": "Aucun emploi du temps importé.",
+    "unknown_level": "Le niveau « {level} » de l'emploi du temps n'est pas configuré.",
+    "level_unused": "Le niveau « {level} » n'apparaît pas dans l'emploi du temps.",
+    "level_no_sport": "Le niveau « {level} » n'a aucun sport.",
+    "sport_no_place": "Le sport « {sport} » n'a aucun lieu.",
+    "place_never_available": "Le lieu « {place} » n'a aucun créneau de disponibilité.",
+    "duplicate_level": "Le niveau « {level} » est défini plusieurs fois.",
+    "too_many_priority": "« {level} » a {count} sports prioritaires pour seulement {periods} périodes.",
+    "priority_impossible": ("Le sport prioritaire « {sport} » ne peut être placé à aucune période pour « {level} » : "
+                            "aucun de ses lieux n'est disponible sur tous les créneaux de ce niveau."),
+    "barrette_single": "« {sport} » est en barrette mais « {level} » a des créneaux avec moins de {min} classes.",
+    "sport_period_unavailable": ("« {sport} » ne peut pas être pratiqué par « {level} » au {period} : "
+                                 "aucun lieu disponible sur tous ses créneaux."),
+    "level_blocked": ("« {level} » : {count} période(s) sans aucun sport possible "
+                      "(vérifiez les disponibilités des lieux)."),
+    "not_enough_sports": "« {level} » a {count} sport(s) pour {periods} périodes et la répétition est désactivée.",
+    "no_solution": ("Aucune combinaison ne respecte toutes les règles : trop de classes pour les lieux "
+                    "disponibles sur certains créneaux. Ajoutez des disponibilités ou des lieux."),
+    "winter_limit": ("Le meilleur planning utilise {count} fois un lieu extérieur en hiver, "
+                     "au-delà de la limite autorisée ({max})."),
+    "relaxed": "Aucun planning parfait : meilleure solution avec {count} règle(s) d'hiver non respectée(s).",
+    "winter_outdoor": "« {level} » utilise un lieu extérieur ({place}) pendant l'hiver ({period}).",
+}
+
+EN: dict[str, str] = {
+    "no_timetable": "No timetable imported.",
+    "unknown_level": "Level “{level}” from the timetable is not configured.",
+    "level_unused": "Level “{level}” does not appear in the timetable.",
+    "level_no_sport": "Level “{level}” has no sport.",
+    "sport_no_place": "Sport “{sport}” has no place.",
+    "place_never_available": "Place “{place}” is never available.",
+    "duplicate_level": "Level “{level}” is defined more than once.",
+    "too_many_priority": "“{level}” has {count} priority sports for only {periods} periods.",
+    "priority_impossible": ("Priority sport “{sport}” cannot be placed in any period for “{level}”: "
+                            "none of its places is available on all of this level's slots."),
+    "barrette_single": "“{sport}” is a paired sport but “{level}” has slots with fewer than {min} classes.",
+    "sport_period_unavailable": ("“{sport}” cannot be done by “{level}” during the {period}: "
+                                 "no place available on all its slots."),
+    "level_blocked": "“{level}”: {count} period(s) with no possible sport (check place availability).",
+    "not_enough_sports": "“{level}” has {count} sport(s) for {periods} periods and repetition is disabled.",
+    "no_solution": ("No combination satisfies every rule: too many classes for the places available on some "
+                    "slots. Add availability or places."),
+    "winter_limit": ("The best planning uses an outdoor place in winter {count} time(s), "
+                     "above the allowed limit ({max})."),
+    "relaxed": "No perfect planning: best solution breaks the winter rule {count} time(s).",
+    "winter_outdoor": "“{level}” uses an outdoor place ({place}) during winter ({period}).",
+}
+
+PERIODS_I18N = {
+    "fr": {"T1": "1er trimestre", "T2": "2e trimestre", "T3": "3e trimestre", "S1": "1er semestre", "S2": "2e semestre"},
+    "en": {"T1": "1st term", "T2": "2nd term", "T3": "3rd term", "S1": "1st semester", "S2": "2nd semester"},
+}
+
+
+def render(code: str, params: dict, lang: str = "fr") -> str:
+    p = dict(params)
+    if "period" in p:
+        p["period"] = PERIODS_I18N[lang].get(str(p["period"]), p["period"])
+    return (EN if lang == "en" else FR)[code].format(**p)
+
+
+def issue(code: str, *, severity: str = "error", target: str | None = None,
+          target_type: TargetType | None = None, **params) -> Issue:
+    return Issue(severity=severity, code=code, message=render(code, params), target=target,
+                 targetType=target_type, params=params)

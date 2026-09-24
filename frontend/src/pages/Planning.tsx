@@ -5,11 +5,14 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { textOn } from "../lib/colors";
+import { periodKey, segmentKey, translateCode } from "../lib/i18n";
+import { usePrefs, useT } from "../prefs";
 import { TimetableGrid } from "../components/TimetableGrid";
 import { Button, IconButton, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
-import { MODE_PERIODS, PERIOD_LABELS, PERIODS, SEGMENT_HINT, SEGMENT_LABELS, SEGMENTS } from "../lib/periods";
-import { isReady, norm, readiness } from "../lib/readiness";
+import { MODE_PERIODS, PERIODS, SEGMENT_HINT, SEGMENTS } from "../lib/periods";
+import { isReady, norm, readiness, targetLink } from "../lib/readiness";
 import { useStore } from "../store";
 import type { Segment, Solution, Workspace } from "../types";
 
@@ -44,11 +47,12 @@ function useImport() {
 }
 
 function ImportHero() {
+  const t = useT();
   const imp = useImport();
   const [over, setOver] = useState(false);
   return (
     <>
-      <PageHeader step={1} title="Emploi du temps" subtitle="Importez la grille Excel de la semaine type : jours en colonnes, créneaux en lignes, et dans chaque case les niveaux qui ont EPS." />
+      <PageHeader step={1} title={t("planning.title")} subtitle={t("planning.subtitle.import")} />
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -69,14 +73,14 @@ function ImportHero() {
         <button
           onClick={imp.open}
           disabled={imp.busy}
-          className="flex items-center gap-5 rounded-full bg-slate-900 py-5 pl-8 pr-12 text-2xl font-medium text-white shadow-xl shadow-slate-900/20 transition hover:scale-[1.02] hover:bg-indigo-600 disabled:opacity-70"
+          className="flex items-center gap-5 rounded-full bg-slate-900 py-5 pl-8 pr-12 text-2xl font-medium text-on shadow-xl shadow-slate-900/20 transition hover:scale-[1.02] hover:bg-indigo-600 disabled:opacity-70"
         >
           {imp.busy ? <Loader2 size={34} className="animate-spin" /> : <Upload size={34} />}
-          Importer un fichier
+          {t("planning.import")}
         </button>
-        <p className="mt-5 text-sm text-slate-500">ou glissez-déposez un fichier .xlsx ici</p>
+        <p className="mt-5 text-sm text-slate-500">{t("planning.drop")}</p>
         <a href={api.templateUrl} className="mt-6 flex items-center gap-2 text-sm font-medium text-indigo-600 hover:underline">
-          <FileSpreadsheet size={16} /> Télécharger un modèle Excel
+          <FileSpreadsheet size={16} /> {t("planning.template")}
         </a>
         {imp.error && <ErrorBox text={imp.error} />}
       </div>
@@ -93,6 +97,8 @@ function ErrorBox({ text }: { text: string }) {
 }
 
 function SetupView() {
+  const t = useT();
+  const lang = usePrefs((p) => p.lang);
   const { ws, result, setResult, setTimetable } = useStore();
   const status = readiness(ws);
   const ready = isReady(status);
@@ -117,18 +123,18 @@ function SetupView() {
     <>
       <PageHeader
         step={ready ? 5 : 1}
-        title="Emploi du temps"
-        subtitle={ready ? "Tout est configuré. Lancez la génération des plannings." : "Configurez les classes, les sports et les lieux pour débloquer la génération."}
+        title={t("planning.title")}
+        subtitle={t(ready ? "planning.subtitle.ready" : "planning.subtitle.todo")}
         actions={
           <>
             {imp.picker}
             <span className="flex items-center gap-2 rounded-xl bg-white px-3 text-sm text-slate-500 ring-1 ring-slate-200">
-              <FileSpreadsheet size={16} className="text-emerald-600" /> {ws.timetable!.fileName || "emploi du temps"}
+              <FileSpreadsheet size={16} className="text-emerald-600" /> {ws.timetable!.fileName || t("planning.defaultFile")}
             </span>
             <Button onClick={imp.open} disabled={imp.busy}>
-              <RefreshCw size={16} /> Remplacer
+              <RefreshCw size={16} /> {t("planning.replace")}
             </Button>
-            <IconButton label="Retirer l'emploi du temps" onClick={() => setTimetable(null)} className="h-10 w-10">
+            <IconButton label={t("planning.remove")} onClick={() => setTimetable(null)} className="h-10 w-10">
               <X size={18} />
             </IconButton>
           </>
@@ -161,43 +167,61 @@ function SetupView() {
           {loading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
               <Loader2 size={72} className="animate-spin text-indigo-600" strokeWidth={1.5} />
-              <span className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow">Recherche des combinaisons…</span>
+              <span className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow">{t("planning.searching")}</span>
             </div>
           )}
         </div>
 
         <aside className="flex flex-col gap-4">
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h3 className="mb-3 font-semibold">Configuration</h3>
+            <h3 className="mb-3 font-semibold">{t("planning.config")}</h3>
             <ul className="space-y-2 text-sm">
-              {[
-                ["Emploi du temps", status.timetable, "/"],
-                ["Classes", status.levels, "/classes"],
-                ["Sports", status.sports, "/sports"],
-                ["Lieux", status.places, "/lieux"],
-              ].map(([label, ok, to]) => (
-                <li key={label as string}>
-                  <Link to={to as string} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50">
+              {(
+                [
+                  ["planning.title", status.timetable, "/"],
+                  ["nav.classes", status.levels, "/classes"],
+                  ["nav.sports", status.sports, "/sports"],
+                  ["nav.places", status.places, "/lieux"],
+                ] as const
+              ).map(([label, ok, to]) => (
+                <li key={label}>
+                  <Link to={to} className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50">
                     {ok ? <CheckCircle2 size={18} className="text-emerald-500" /> : <CircleAlert size={18} className="text-amber-500" />}
-                    <span className={ok ? "text-slate-700" : "font-medium text-slate-900"}>{label as string}</span>
+                    <span className={ok ? "text-slate-700" : "font-medium text-slate-900"}>{t(label)}</span>
                   </Link>
                 </li>
               ))}
             </ul>
             {status.problems.length > 0 && (
-              <ul className="mt-4 max-h-48 space-y-1 overflow-auto border-t border-slate-100 pt-3 text-xs text-slate-500">
-                {status.problems.map((p) => (
-                  <li key={p}>• {p}</li>
+              <ul className="mt-4 max-h-48 space-y-1 overflow-auto border-t border-slate-100 pt-3 text-xs">
+                {status.problems.map((p, k) => (
+                  <li key={k}>
+                    <Link to={targetLink(p.targetType, p.target, ws)} className="block rounded px-1 py-0.5 text-slate-500 hover:bg-slate-50 hover:text-indigo-600">
+                      • {t(p.key, p.params)}
+                    </Link>
+                  </li>
                 ))}
               </ul>
             )}
           </div>
           {result && result.status === "infeasible" && (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
-              <h3 className="mb-2 flex items-center gap-2 font-semibold"><AlertCircle size={16} /> Aucun planning possible</h3>
-              <ul className="space-y-1.5">
-                {result.issues.map((i, k) => (
-                  <li key={k} className={i.severity === "warning" ? "text-rose-700/70" : ""}>• {i.message}</li>
+              <h3 className="mb-1 flex items-center gap-2 font-semibold"><AlertCircle size={16} /> {t("planning.none")}</h3>
+              <p className="mb-2 text-xs opacity-80">{t("planning.noneHint")}</p>
+              <ul className="space-y-1">
+                {[...result.issues].sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1)).map((i, k) => (
+                  <li key={k}>
+                    <Link
+                      to={targetLink(i.targetType, i.target, ws)}
+                      className={clsx(
+                        "flex gap-1 rounded-lg px-2 py-1 underline-offset-2 transition hover:bg-rose-100 hover:underline",
+                        i.severity === "warning" && "opacity-70",
+                      )}
+                    >
+                      <span>•</span>
+                      <span>{translateCode(lang, i.code, i.params, i.message)}</span>
+                    </Link>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -210,11 +234,11 @@ function SetupView() {
         <button
           onClick={generate}
           disabled={!ready || loading}
-          title={ready ? "Générer les plannings" : "Configuration incomplète"}
-          className="group flex h-16 items-center gap-3 rounded-full bg-indigo-600 px-8 text-lg font-semibold text-white shadow-xl shadow-indigo-600/30 transition hover:scale-[1.03] hover:bg-indigo-500 disabled:scale-100 disabled:bg-slate-300 disabled:shadow-none"
+          title={t(ready ? "planning.generate" : "planning.generateLocked")}
+          className="group flex h-16 items-center gap-3 rounded-full bg-indigo-600 px-8 text-lg font-semibold text-on shadow-xl shadow-indigo-600/30 transition hover:scale-[1.03] hover:bg-indigo-500 disabled:scale-100 disabled:bg-slate-300 disabled:shadow-none"
         >
           {loading ? <Loader2 className="animate-spin" /> : <Send className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />}
-          Générer les plannings
+          {t("planning.generate")}
         </button>
       </div>
     </>
@@ -245,13 +269,9 @@ function slotContents(ws: Workspace, sol: Solution, seg: Segment) {
   return bySlot;
 }
 
-function textOn(hex: string) {
-  const h = hex.replace("#", "");
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
-  return 0.299 * r + 0.587 * g + 0.114 * b > 160 ? "#0f172a" : "#ffffff";
-}
-
 function ResultView() {
+  const t = useT();
+  const lang = usePrefs((p) => p.lang);
   const { ws, result, setResult } = useStore();
   const [idx, setIdx] = useState(0);
   const [seg, setSeg] = useState<Segment>("Q1");
@@ -267,7 +287,7 @@ function ResultView() {
     setMenu(false);
     setBusy(true);
     try {
-      await api.exportSolutions(ws, list);
+      await api.exportSolutions(ws, list, lang);
     } finally {
       setBusy(false);
     }
@@ -277,11 +297,11 @@ function ResultView() {
     <>
       <PageHeader
         step={6}
-        title="Plannings générés"
-        subtitle={`${result!.totalFound}${result!.truncated ? "+" : ""} combinaison${result!.totalFound > 1 ? "s" : ""} trouvée${result!.totalFound > 1 ? "s" : ""}. Parcourez-les et téléchargez celles qui vous conviennent.`}
+        title={t("result.title")}
+        subtitle={t("result.subtitle", { count: `${result!.totalFound}${result!.truncated ? "+" : ""}` })}
         actions={
           <Button onClick={() => setResult(null)}>
-            <ChevronLeft size={16} /> Retour à la configuration
+            <ChevronLeft size={16} /> {t("result.back")}
           </Button>
         }
       />
@@ -290,10 +310,10 @@ function ResultView() {
         <div className="mb-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <Snowflake size={18} className="mt-0.5 shrink-0" />
           <div>
-            <b>Aucun planning ne respecte toutes les règles.</b> Voici les meilleurs compromis.
+            <b>{t("result.relaxed")}</b> {t("result.relaxedHint")}
             <ul className="mt-1 list-disc pl-5">
               {sol.violations.map((v, i) => (
-                <li key={i}>{v.message}</li>
+                <li key={i}>{translateCode(lang, v.rule, v.params, v.message)}</li>
               ))}
             </ul>
           </div>
@@ -302,16 +322,16 @@ function ResultView() {
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
-          <IconButton label="Précédente" onClick={() => setIdx((i) => (i - 1 + sols.length) % sols.length)}>
+          <IconButton label={t("result.prev")} onClick={() => setIdx((i) => (i - 1 + sols.length) % sols.length)}>
             <ChevronLeft size={18} />
           </IconButton>
           <span className="min-w-28 text-center text-sm font-medium">
-            Solution {idx + 1} <span className="text-slate-400">/ {sols.length}</span>
+            {t("result.solution")} {idx + 1} <span className="text-slate-400">/ {sols.length}</span>
           </span>
-          <IconButton label="Suivante" onClick={() => setIdx((i) => (i + 1) % sols.length)}>
+          <IconButton label={t("result.next")} onClick={() => setIdx((i) => (i + 1) % sols.length)}>
             <ChevronRight size={18} />
           </IconButton>
-          <IconButton label="Une autre au hasard" onClick={() => setIdx(Math.floor(Math.random() * sols.length))}>
+          <IconButton label={t("result.random")} onClick={() => setIdx(Math.floor(Math.random() * sols.length))}>
             <Shuffle size={16} />
           </IconButton>
         </div>
@@ -328,7 +348,7 @@ function ResultView() {
             >
               <span className="flex items-center gap-1 text-sm font-medium">
                 {winter.has(s) && <Snowflake size={12} className="text-sky-500" />}
-                {SEGMENT_LABELS[s]}
+                {t(segmentKey(s))}
               </span>
               <span className="text-[10px] uppercase tracking-wider opacity-70">{SEGMENT_HINT[s]}</span>
             </button>
@@ -337,13 +357,13 @@ function ResultView() {
 
         <div className="relative ml-auto">
           <Button variant="primary" onClick={() => setMenu((m) => !m)} disabled={busy}>
-            {busy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} Télécharger
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} {t("result.download")}
           </Button>
           {menu && (
             <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
-              <MenuItem onClick={() => exportSols([sols[0]])} title="La meilleure" sub="Solution 1" />
-              <MenuItem onClick={() => exportSols([sol])} title="Celle affichée" sub={`Solution ${idx + 1}`} />
-              <MenuItem onClick={() => exportSols(sols)} title="Toutes" sub={`${sols.length} solutions, une feuille chacune`} />
+              <MenuItem onClick={() => exportSols([sols[0]])} title={t("result.best")} sub={`${t("result.solution")} 1`} />
+              <MenuItem onClick={() => exportSols([sol])} title={t("result.current")} sub={`${t("result.solution")} ${idx + 1}`} />
+              <MenuItem onClick={() => exportSols(sols)} title={t("result.all")} sub={t("result.allSub", { count: sols.length })} />
             </div>
           )}
         </div>
@@ -381,23 +401,23 @@ function ResultView() {
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wider text-slate-500">
               <tr>
-                <th className="px-4 py-3">Niveau</th>
-                <th className="px-4 py-3">Période 1</th>
-                <th className="px-4 py-3">Période 2</th>
-                <th className="px-4 py-3">Période 3</th>
+                <th className="px-4 py-3">{t("result.level")}</th>
+                {[1, 2, 3].map((n) => (
+                  <th key={n} className="px-4 py-3">{t("result.period", { n })}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {usedLevels.map((l) => (
                 <tr key={l.id}>
                   <td className="px-4 py-2.5 font-medium">
-                    {l.name} <span className="ml-1 text-xs text-slate-400">{l.mode}</span>
+                    {l.name} <span className="ml-1 text-xs text-slate-400">{t(`mode.${l.mode}`)}</span>
                   </td>
                   {[0, 1, 2].map((i) => {
                     const p = MODE_PERIODS[l.mode][i];
                     const sp = p && ws.sports.find((s) => s.id === sol.plan[l.id][p]);
                     return (
-                      <td key={i} className="px-4 py-2.5" title={p ? PERIOD_LABELS[p] : ""}>
+                      <td key={i} className="px-4 py-2.5" title={p ? t(periodKey(p)) : ""}>
                         {sp ? sp.name : <span className="text-slate-300">—</span>}
                       </td>
                     );
@@ -408,13 +428,13 @@ function ResultView() {
           </table>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Lieux</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{t("result.places")}</h3>
           <ul className="space-y-1.5 text-sm">
             {ws.places.map((p) => (
               <li key={p.id} className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full" style={{ background: p.color }} />
                 {p.name}
-                {p.outdoor && <span className="text-xs text-slate-400">extérieur</span>}
+                {p.outdoor && <span className="text-xs text-slate-400">{t("result.outdoor")}</span>}
               </li>
             ))}
           </ul>

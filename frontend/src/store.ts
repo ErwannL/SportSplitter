@@ -1,11 +1,8 @@
 import { create } from "zustand";
 import { api } from "./lib/api";
+import { placeColor } from "./lib/colors";
 import { norm, timetableLevels } from "./lib/readiness";
-import type { Level, Place, SolveResult, Sport, Timetable, Workspace } from "./types";
-
-export const PLACE_COLORS = [
-  "#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#8b5cf6", "#14b8a6", "#f97316", "#84cc16",
-];
+import type { Level, Place, Settings, SolveResult, Sport, Timetable, Workspace } from "./types";
 
 export const LEVEL_PRESETS: Record<string, string[]> = {
   Primaire: ["CP", "CE1", "CE2", "CM1", "CM2"],
@@ -16,12 +13,30 @@ export const LEVEL_PRESETS: Record<string, string[]> = {
 
 const LOCAL_KEY = "sportsplitter.workspace";
 
+export const defaultSettings = (): Settings => ({
+  winterSegments: ["Q2", "Q3"],
+  winterRule: "soft",
+  maxWinterViolations: 1,
+  priorityRequired: true,
+  barretteMinGroups: 2,
+  allowRepeat: true,
+  maxSolutions: 200,
+  timeLimit: 20,
+});
+
 export const emptyWorkspace = (): Workspace => ({
   timetable: null,
   levels: [],
   sports: [],
   places: [],
-  settings: { winterSegments: ["Q2", "Q3"], maxSolutions: 200, timeLimit: 20 },
+  settings: defaultSettings(),
+});
+
+/** Complète un espace de travail chargé (anciennes versions sans certains champs). */
+export const hydrate = (ws: Partial<Workspace>): Workspace => ({
+  ...emptyWorkspace(),
+  ...ws,
+  settings: { ...defaultSettings(), ...ws.settings },
 });
 
 let counter = 0;
@@ -46,27 +61,37 @@ interface State {
   addPlace: (name: string) => string;
   updatePlace: (id: string, patch: Partial<Place>) => void;
   removePlace: (id: string) => void;
+  updateSettings: (patch: Partial<Settings>) => void;
   setResult: (r: SolveResult | null) => void;
+  /** Sauvegarde immédiatement les modifications en attente (fermeture de l'onglet…). */
+  flush: () => Promise<void>;
   reset: () => void;
 }
 
 let timer: ReturnType<typeof setTimeout> | undefined;
+let pending = false;
 
 export const useStore = create<State>((set, get) => {
   /** Modifie l'espace de travail, invalide le résultat et sauvegarde (différé). */
   const mutate = (fn: (ws: Workspace) => Workspace) => {
     set({ ws: fn(get().ws), result: null, save: "saving" });
     clearTimeout(timer);
-    timer = setTimeout(async () => {
-      const ws = get().ws;
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(ws));
-      try {
-        await api.saveWorkspace(ws);
-        set({ save: "saved" });
-      } catch {
-        set({ save: "offline" });
-      }
-    }, 500);
+    pending = true;
+    timer = setTimeout(flush, 500);
+  };
+
+  const flush = async () => {
+    clearTimeout(timer);
+    if (!pending) return;
+    pending = false;
+    const ws = get().ws;
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(ws));
+    try {
+      await api.saveWorkspace(ws);
+      set({ save: "saved" });
+    } catch {
+      set({ save: "offline" });
+    }
   };
 
   return {
@@ -78,10 +103,10 @@ export const useStore = create<State>((set, get) => {
     async load() {
       try {
         const ws = await api.loadWorkspace();
-        set({ ws: { ...emptyWorkspace(), ...ws }, loaded: true, save: "saved" });
+        set({ ws: hydrate(ws), loaded: true, save: "saved" });
       } catch {
         const local = localStorage.getItem(LOCAL_KEY);
-        set({ ws: local ? { ...emptyWorkspace(), ...JSON.parse(local) } : emptyWorkspace(), loaded: true, save: "offline" });
+        set({ ws: hydrate(local ? JSON.parse(local) : {}), loaded: true, save: "offline" });
       }
     },
 
@@ -137,7 +162,14 @@ export const useStore = create<State>((set, get) => {
         ...ws,
         places: [
           ...ws.places,
-          { id, name, color: PLACE_COLORS[ws.places.length % PLACE_COLORS.length], outdoor: false, capacity: 1, availability: {} },
+          {
+            id,
+            name,
+            color: placeColor(name, id, ws.places.map((p) => p.color)),
+            outdoor: false,
+            capacity: 1,
+            availability: {},
+          },
         ],
       }));
       return id;
@@ -153,7 +185,11 @@ export const useStore = create<State>((set, get) => {
         sports: ws.sports.map((s) => ({ ...s, placeIds: s.placeIds.filter((p) => p !== id) })),
       })),
 
+    updateSettings: (patch) => mutate((ws) => ({ ...ws, settings: { ...ws.settings, ...patch } })),
+
     setResult: (result) => set({ result }),
+
+    flush,
 
     reset: () => mutate(() => emptyWorkspace()),
   };

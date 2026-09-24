@@ -99,9 +99,17 @@ class Place(Camel):
 
 
 class Settings(Camel):
+    """Règles métier de l'algorithme, modifiables par un administrateur."""
+
     winter_segments: list[Segment] = Field(default_factory=lambda: ["Q2", "Q3"], alias="winterSegments")
-    max_solutions: int = Field(200, alias="maxSolutions")
-    time_limit: float = Field(20.0, alias="timeLimit")
+    # soft : évité, au plus ``max_winter_violations`` écarts ; hard : interdit ; off : ignoré
+    winter_rule: Literal["soft", "hard", "off"] = Field("soft", alias="winterRule")
+    max_winter_violations: int = Field(1, ge=0, alias="maxWinterViolations")
+    priority_required: bool = Field(True, alias="priorityRequired")
+    barrette_min_groups: int = Field(2, ge=2, alias="barretteMinGroups")
+    allow_repeat: bool = Field(True, alias="allowRepeat")
+    max_solutions: int = Field(200, ge=1, le=5000, alias="maxSolutions")
+    time_limit: float = Field(20.0, gt=0, le=600, alias="timeLimit")
 
 
 class Workspace(Camel):
@@ -128,9 +136,13 @@ class Assignment(Camel):
     placements: list[Placement]
 
 
+TargetType = Literal["level", "sport", "place", "timetable"]
+
+
 class Violation(Camel):
     rule: str
     message: str
+    params: dict[str, str | int] = Field(default_factory=dict)
     level_id: str | None = Field(None, alias="levelId")
     period: str | None = None
     place_id: str | None = Field(None, alias="placeId")
@@ -148,6 +160,8 @@ class Issue(Camel):
     code: str
     message: str
     target: str | None = None
+    target_type: TargetType | None = Field(None, alias="targetType")
+    params: dict[str, str | int] = Field(default_factory=dict)
 
 
 class SolveResult(Camel):

@@ -25,7 +25,7 @@ test-backend:
 	cd backend && python -m pytest -q
 
 test-frontend:
-	cd frontend && npm test
+	cd frontend && npm run test:coverage
 
 lint:
 	cd backend && ruff check app tests

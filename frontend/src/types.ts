@@ -54,8 +54,21 @@ export interface Place {
 
 export interface Settings {
   winterSegments: Segment[];
+  winterRule: "soft" | "hard" | "off";
+  maxWinterViolations: number;
+  priorityRequired: boolean;
+  barretteMinGroups: number;
+  allowRepeat: boolean;
   maxSolutions: number;
   timeLimit: number;
+}
+
+export type Params = Record<string, string | number>;
+export type TargetType = "level" | "sport" | "place" | "timetable";
+
+export interface Me {
+  role: string;
+  permissions: string[];
 }
 
 export interface Workspace {
@@ -82,6 +95,7 @@ export interface Assignment {
 export interface Violation {
   rule: string;
   message: string;
+  params?: Params;
   levelId?: string | null;
   period?: Period | null;
   placeId?: string | null;
@@ -99,6 +113,8 @@ export interface Issue {
   code: string;
   message: string;
   target?: string | null;
+  targetType?: TargetType | null;
+  params?: Params;
 }
 
 export interface SolveResult {

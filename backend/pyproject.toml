@@ -1,5 +1,14 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
 
 [tool.ruff]
 line-length = 120

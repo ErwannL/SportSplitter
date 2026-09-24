@@ -1,11 +1,14 @@
 import { AlertTriangle, GraduationCap, Sparkles } from "lucide-react";
+import type { Key } from "../lib/i18n";
 import { MODE_PERIODS } from "../lib/periods";
 import { norm, timetableLevels } from "../lib/readiness";
+import { useT } from "../prefs";
 import { LEVEL_PRESETS, missingLevels, useStore } from "../store";
 import { AddColumn, AddPicker, Board, Button, Chip, Column, EmptyState, PageHeader, SectionLabel, Segmented } from "../components/ui";
 import type { Mode } from "../types";
 
 export function ClassesPage() {
+  const t = useT();
   const s = useStore();
   const { ws } = s;
   const missing = missingLevels(ws);
@@ -15,11 +18,11 @@ export function ClassesPage() {
     <>
       <PageHeader
         step={2}
-        title="Classes"
-        subtitle="Créez vos niveaux (nommez-les comme dans l'emploi du temps), choisissez un fonctionnement par trimestre ou semestre et attribuez les sports."
+        title={t("classes.title")}
+        subtitle={t("classes.subtitle")}
         actions={Object.entries(LEVEL_PRESETS).map(([k, names]) => (
           <Button key={k} size="sm" onClick={() => s.addLevels(names)}>
-            + {k}
+            + {t(`preset.${k}` as Key)}
           </Button>
         ))}
       />
@@ -28,10 +31,10 @@ export function ClassesPage() {
         <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <AlertTriangle size={18} />
           <span className="flex-1">
-            Niveaux présents dans l'emploi du temps mais pas configurés : <b>{missing.join(", ")}</b>
+            {t("classes.missing")} <b>{missing.join(", ")}</b>
           </span>
           <Button size="sm" variant="primary" onClick={() => s.addLevels(missing)}>
-            <Sparkles size={14} /> Les créer
+            <Sparkles size={14} /> {t("classes.createThem")}
           </Button>
         </div>
       )}
@@ -39,9 +42,9 @@ export function ClassesPage() {
       {ws.levels.length === 0 ? (
         <EmptyState
           icon={<GraduationCap />}
-          title="Aucun niveau"
-          text="Ajoutez un niveau, ou utilisez un préréglage (Collège, Lycée…). Vous pouvez donner le nom que vous voulez."
-          action={<Button variant="primary" onClick={() => s.addLevel()}>Ajouter un niveau</Button>}
+          title={t("classes.empty")}
+          text={t("classes.emptyText")}
+          action={<Button variant="primary" onClick={() => s.addLevel(t("classes.defaultName", { n: 1 }))}>{t("classes.add")}</Button>}
         />
       ) : (
         <Board>
@@ -50,13 +53,14 @@ export function ClassesPage() {
             return (
               <Column
                 key={lv.id}
+                id={lv.id}
                 title={lv.name}
                 onRename={(name) => s.updateLevel(lv.id, { name })}
                 onDelete={() => s.removeLevel(lv.id)}
                 badge={
                   !used.has(norm(lv.name)) && ws.timetable ? (
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500" title="Absent de l'emploi du temps">
-                      inutilisé
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500" title={t("classes.unusedHint")}>
+                      {t("classes.unused")}
                     </span>
                   ) : undefined
                 }
@@ -65,14 +69,14 @@ export function ClassesPage() {
                   value={lv.mode}
                   onChange={(mode) => s.updateLevel(lv.id, { mode })}
                   options={[
-                    { value: "trimestre", label: "Trimestre" },
-                    { value: "semestre", label: "Semestre" },
+                    { value: "trimestre", label: t("mode.trimestre") },
+                    { value: "semestre", label: t("mode.semestre") },
                   ]}
                 />
                 <div className="flex items-center justify-between">
-                  <SectionLabel>Sports</SectionLabel>
+                  <SectionLabel>{t("classes.sports")}</SectionLabel>
                   <span className="text-xs text-slate-400">
-                    {lv.sportIds.length} / {periods} périodes
+                    {t("classes.count", { count: lv.sportIds.length, periods })}
                   </span>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -83,13 +87,13 @@ export function ClassesPage() {
                       <Chip
                         key={id}
                         label={sp.name}
-                        sub={sp.priority ? <span className="rounded bg-indigo-100 px-1.5 text-[10px] font-semibold text-indigo-700">PRIO</span> : undefined}
+                        sub={sp.priority ? <span className="rounded bg-indigo-100 px-1.5 text-[10px] font-semibold text-indigo-700">{t("sports.prio")}</span> : undefined}
                         onRemove={() => s.updateLevel(lv.id, { sportIds: lv.sportIds.filter((x) => x !== id) })}
                       />
                     );
                   })}
                   <AddPicker
-                    placeholder="Badminton, Natation…"
+                    placeholder={t("classes.sportPlaceholder")}
                     options={ws.sports}
                     exclude={lv.sportIds}
                     onPick={(id) => s.updateLevel(lv.id, { sportIds: [...lv.sportIds, id] })}
@@ -101,12 +105,12 @@ export function ClassesPage() {
                   />
                 </div>
                 {lv.sportIds.length > 0 && lv.sportIds.length < periods && (
-                  <p className="px-1 text-xs text-slate-400">Moins de sports que de périodes : certains seront répétés.</p>
+                  <p className="px-1 text-xs text-slate-400">{t("classes.fewer")}</p>
                 )}
               </Column>
             );
           })}
-          <AddColumn label="Ajouter un niveau" onAdd={() => s.addLevel()} />
+          <AddColumn label={t("classes.add")} onAdd={() => s.addLevel(t("classes.defaultName", { n: ws.levels.length + 1 }))} />
         </Board>
       )}
     </>

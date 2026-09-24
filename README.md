@@ -28,6 +28,23 @@ make test          # pytest + vitest
 5. Le bouton **Générer** se débloque quand tout est configuré.
 6. Le solveur énumère les plannings valides (200 au maximum par défaut). Si aucun n'existe, il propose les meilleurs compromis et indique la règle non respectée. Vous pouvez parcourir les solutions puis télécharger la meilleure, celle affichée ou toutes (Excel).
 
+## Interface
+
+* Thème clair / sombre, interface en français ou en anglais, menu latéral repliable.
+* Un guide s'ouvre à la première visite (réouvrable via « Guide de démarrage ») et un bandeau en haut de chaque page indique la prochaine étape.
+* Quand aucun planning n'est possible, chaque problème est un lien vers l'élément à corriger.
+* Chaque lieu reçoit une couleur automatique, stable, vive et distincte des autres lieux.
+* Sauvegarde automatique : chaque modification est enregistrée ; hors ligne, elle est gardée dans le navigateur.
+
+## Administration
+
+La page **Administration** permet de modifier les règles métier de l'algorithme (hiver souple, strict ou ignoré, nombre d'écarts tolérés, sports prioritaires obligatoires, répétition des sports, taille minimale d'une barrette, nombre de solutions et temps de calcul).
+En développement, tout le monde est administrateur. Le rôle est donné par `SPORTSPLITTER_ROLE` (`admin` par défaut) en attendant la gestion des utilisateurs, et l'API refuse la modification des règles aux autres rôles.
+
+## Tests
+
+`make test` lance pytest et vitest avec une couverture exigée de 100 %.
+
 ## Format Excel attendu
 
 | Heures    | Lundi | Mardi   | Mercredi | … |
@@ -52,7 +69,7 @@ L'année est découpée en 4 segments : Sept–Nov (T1), Déc–Janv (T2/S1), F�
 | Lieu compatible avec le sport, disponible sur toute la période | stricte |
 | Capacité du lieu sur chaque créneau et chaque segment | stricte |
 | Barrette : au moins 2 classes du niveau, toutes dans le même lieu | stricte |
-| Pas de lieu extérieur en hiver | assouplissable (minimisée) |
+| Pas de lieu extérieur en hiver | réglable : souple (écarts limités, 1 par défaut), stricte ou ignorée |
 
 ## Structure
 

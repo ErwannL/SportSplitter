@@ -1,8 +1,9 @@
-import type { Solution, SolveResult, Timetable, Workspace } from "../types";
+import type { Lang } from "./i18n";
+import type { Me, Solution, SolveResult, Timetable, Workspace } from "../types";
 
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    let detail = `Erreur ${res.status}`;
+    let detail = `HTTP ${res.status}`;
     try {
       const body = await res.json();
       if (typeof body.detail === "string") detail = body.detail;
@@ -15,11 +16,14 @@ async function json<T>(res: Response): Promise<T> {
 }
 
 export const api = {
+  me: () => fetch("/api/me").then((r) => json<Me>(r)),
+
   loadWorkspace: () => fetch("/api/workspace").then((r) => json<Workspace>(r)),
 
   saveWorkspace: (ws: Workspace) =>
     fetch("/api/workspace", {
       method: "PUT",
+      keepalive: true,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(ws),
     }).then((r) => json<Workspace>(r)),
@@ -37,13 +41,13 @@ export const api = {
       body: JSON.stringify(ws),
     }).then((r) => json<SolveResult>(r)),
 
-  async exportSolutions(ws: Workspace, solutions: Solution[]) {
+  async exportSolutions(ws: Workspace, solutions: Solution[], lang: Lang = "fr") {
     const res = await fetch("/api/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspace: ws, solutions }),
+      body: JSON.stringify({ workspace: ws, solutions, lang }),
     });
-    if (!res.ok) throw new Error("Export impossible");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     download(await res.blob(), solutions.length === 1 ? `planning-${solutions[0].index + 1}.xlsx` : "plannings.xlsx");
   },
 

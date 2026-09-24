@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { Check, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useT } from "../prefs";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -17,7 +19,7 @@ export function Button({
         size === "sm" && "h-8 px-3 text-sm",
         size === "md" && "h-10 px-4 text-sm",
         size === "lg" && "h-12 px-6 text-base",
-        variant === "primary" && "bg-indigo-600 text-white shadow-sm shadow-indigo-600/30 hover:bg-indigo-500",
+        variant === "primary" && "bg-indigo-600 text-on shadow-sm shadow-indigo-600/30 hover:bg-indigo-500",
         variant === "secondary" && "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
         variant === "ghost" && "text-slate-600 hover:bg-slate-100",
         variant === "danger" && "text-rose-600 hover:bg-rose-50",
@@ -49,7 +51,7 @@ export function Checkbox({ checked, onChange, label, hint }: { checked: boolean;
       <span
         className={clsx(
           "flex h-5 w-5 items-center justify-center rounded-md border transition",
-          checked ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 bg-white",
+          checked ? "border-indigo-600 bg-indigo-600 text-on" : "border-slate-300 bg-white",
         )}
       >
         {checked && <Check size={14} strokeWidth={3} />}
@@ -110,6 +112,7 @@ export function InlineEdit({ value, onChange, className }: { value: string; onCh
 
 /** Colonne d'un tableau de bord horizontal (niveaux, sports, lieux). */
 export function Column({
+  id,
   title,
   onRename,
   onDelete,
@@ -118,6 +121,7 @@ export function Column({
   badge,
   width = "w-72",
 }: {
+  id: string;
   title: string;
   onRename: (v: string) => void;
   onDelete: () => void;
@@ -126,13 +130,28 @@ export function Column({
   children: ReactNode;
   width?: string;
 }) {
+  const t = useT();
+  const [params] = useSearchParams();
+  const focused = params.get("focus") === id;
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (focused) ref.current?.scrollIntoView?.({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [focused]);
   return (
-    <section className={clsx("flex shrink-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm", width)}>
+    <section
+      ref={ref}
+      id={`col-${id}`}
+      className={clsx(
+        "flex shrink-0 flex-col overflow-hidden rounded-2xl border bg-white shadow-sm",
+        focused ? "focus-flash border-indigo-400" : "border-slate-200",
+        width,
+      )}
+    >
       <div className="h-1.5" style={{ background: accent ?? "#6366f1" }} />
       <header className="flex items-center gap-1 border-b border-slate-100 px-3 py-3">
         <InlineEdit value={title} onChange={onRename} className="text-lg font-semibold text-slate-900" />
         {badge}
-        <IconButton label="Supprimer" onClick={onDelete} className="hover:bg-rose-50 hover:text-rose-600">
+        <IconButton label={t("common.delete")} onClick={onDelete} className="hover:bg-rose-50 hover:text-rose-600">
           <Trash2 size={16} />
         </IconButton>
       </header>
@@ -146,13 +165,14 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 }
 
 export function Chip({ label, color, onRemove, sub }: { label: string; color?: string; onRemove?: () => void; sub?: ReactNode }) {
+  const t = useT();
   return (
     <div className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
       {color && <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: color }} />}
       <span className="flex-1 truncate text-sm font-medium text-slate-700">{label}</span>
       {sub}
       {onRemove && (
-        <button onClick={onRemove} aria-label={`Retirer ${label}`} className="text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-rose-500">
+        <button onClick={onRemove} aria-label={t("common.remove", { name: label })} className="text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-rose-500">
           <X size={16} />
         </button>
       )}
@@ -174,6 +194,7 @@ export function AddPicker({
   onCreate: (name: string) => void;
   placeholder: string;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const ref = useRef<HTMLDivElement>(null);
@@ -199,7 +220,7 @@ export function AddPicker({
         onClick={() => setOpen(true)}
         className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 py-2.5 text-sm font-medium text-slate-400 transition hover:border-indigo-300 hover:text-indigo-600"
       >
-        <Plus size={18} /> Ajouter
+        <Plus size={18} /> {t("common.add")}
       </button>
     );
 
@@ -227,10 +248,10 @@ export function AddPicker({
         ))}
         {q.trim() && !exact && (
           <button onClick={() => submit(() => onCreate(q.trim()))} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-indigo-600 hover:bg-indigo-50">
-            <Plus size={14} /> Créer « {q.trim()} »
+            <Plus size={14} /> {t("common.create", { name: q.trim() })}
           </button>
         )}
-        {!avail.length && !q.trim() && <div className="px-3 py-2 text-sm text-slate-400">Tapez un nom…</div>}
+        {!avail.length && !q.trim() && <div className="px-3 py-2 text-sm text-slate-400">{t("common.typeName")}</div>}
       </div>
     </div>
   );
@@ -249,10 +270,11 @@ export function AddColumn({ onAdd, label }: { onAdd: () => void; label: string }
 }
 
 export function PageHeader({ step, title, subtitle, actions }: { step?: number; title: string; subtitle: string; actions?: ReactNode }) {
+  const t = useT();
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        {step && <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-indigo-600">Étape {step}</div>}
+        {step && <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-indigo-600">{t("common.step", { n: step })}</div>}
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-500">{subtitle}</p>
       </div>

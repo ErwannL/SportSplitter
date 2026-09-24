@@ -2,13 +2,6 @@ import type { Mode, Period, Segment } from "../types";
 
 export const SEGMENTS: Segment[] = ["Q1", "Q2", "Q3", "Q4"];
 
-export const SEGMENT_LABELS: Record<Segment, string> = {
-  Q1: "Sept – Nov",
-  Q2: "Déc – Janv",
-  Q3: "Févr – Mars",
-  Q4: "Avr – Juin",
-};
-
 export const SEGMENT_HINT: Record<Segment, string> = {
   Q1: "T1 · S1",
   Q2: "T2 · S1",
@@ -29,25 +22,9 @@ export const MODE_PERIODS: Record<Mode, Period[]> = {
   semestre: ["S1", "S2"],
 };
 
-export const PERIOD_LABELS: Record<Period, string> = {
-  T1: "1er trimestre",
-  T2: "2e trimestre",
-  T3: "3e trimestre",
-  S1: "1er semestre",
-  S2: "2e semestre",
-};
-
 export type Brush = "all" | Period | "erase";
 
-export const BRUSHES: { id: Brush; label: string }[] = [
-  { id: "all", label: "Toute l'année" },
-  { id: "T1", label: "T1" },
-  { id: "T2", label: "T2" },
-  { id: "T3", label: "T3" },
-  { id: "S1", label: "S1" },
-  { id: "S2", label: "S2" },
-  { id: "erase", label: "Effacer" },
-];
+export const BRUSHES: Brush[] = ["all", "T1", "T2", "T3", "S1", "S2", "erase"];
 
 /** Applique un pinceau à la liste des segments disponibles d'un créneau. */
 export function applyBrush(current: Segment[], brush: Brush): Segment[] {

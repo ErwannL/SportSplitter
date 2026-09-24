@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import { slotId } from "../lib/readiness";
+import { useT } from "../prefs";
 import type { Cell, Timetable } from "../types";
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 
 /** Grille hebdomadaire générique (heures × jours) avec cellules fusionnées. */
 export function TimetableGrid({ timetable, renderCell, cellClassName, onCellPointerDown, onCellPointerEnter, compact, dim }: Props) {
+  const t = useT();
   const rowH = compact ? "minmax(2.75rem, auto)" : "minmax(5rem, auto)";
   return (
     <div
@@ -25,7 +27,7 @@ export function TimetableGrid({ timetable, renderCell, cellClassName, onCellPoin
         gap: 1,
       }}
     >
-      <div className="bg-slate-50 px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{compact ? "" : "Heures"}</div>
+      <div className="bg-slate-50 px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{compact ? "" : t("planning.hours")}</div>
       {timetable.days.map((d) => (
         <div key={d} className="truncate bg-slate-50 px-2 py-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
           {compact ? d.slice(0, 3) : d}
@@ -45,7 +47,7 @@ export function TimetableGrid({ timetable, renderCell, cellClassName, onCellPoin
             style={{ gridRow: `${c.row + 2} / span ${c.rowSpan}`, gridColumn: c.day + 2 }}
             className={clsx(
               "relative min-w-0",
-              c.closed ? "bg-[repeating-linear-gradient(135deg,#f1f5f9_0_8px,#e2e8f0_8px_16px)]" : "bg-white",
+              c.closed ? "closed-slot" : "bg-white",
               cellClassName?.(c, id),
             )}
             onPointerDown={onCellPointerDown && !c.closed ? () => onCellPointerDown(c, id) : undefined}
