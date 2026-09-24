@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DICTS, periodKey, segmentKey, translate, translateCode } from "./i18n";
+import { DICTS, periodKey, segmentKey, translate, translateCode, translateFix } from "./i18n";
 
 describe("i18n", () => {
   it("dictionnaires alignés", () => {
@@ -21,5 +21,16 @@ describe("i18n", () => {
   it("clés dérivées", () => {
     expect(segmentKey("Q1")).toBe("segment.Q1");
     expect(periodKey("S2")).toBe("period.S2");
+  });
+});
+
+describe("translateFix", () => {
+  it("propose une solution ou rien", () => {
+    expect(translateFix("fr", "sport_no_place", { sport: "Bad" })).toContain("Bad");
+    expect(translateFix("en", "no_solution", undefined)).toContain("capacity");
+    expect(translateFix("fr", "inconnu", {})).toBeNull();
+  });
+  it("chaque clé française a son équivalent anglais", () => {
+    expect(Object.keys(DICTS.en).sort()).toEqual(Object.keys(DICTS.fr).sort());
   });
 });

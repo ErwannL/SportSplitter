@@ -43,6 +43,9 @@
   --color-rose-700: #fda4af;
   --color-rose-800: #fecdd3;
   --color-emerald-50: rgb(16 185 129 / 0.12);
+  --color-rose-100: rgb(244 63 94 / 0.2);
+  --color-amber-100: rgb(245 158 11 / 0.2);
+  --color-emerald-100: rgb(16 185 129 / 0.2);
 }
 
 body {
@@ -60,4 +63,14 @@ body {
 
 .focus-flash {
   animation: focus-flash 1.2s ease-in-out 2;
+}
+
+@keyframes pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadein {
+  from { opacity: 0; transform: translateX(8px); }
+  to { opacity: 1; transform: none; }
 }

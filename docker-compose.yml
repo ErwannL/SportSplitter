@@ -1,12 +1,18 @@
+name: sportsplitter
+
 services:
   db:
     image: postgres:16-alpine
+    container_name: sportsplitter-db
     environment:
       POSTGRES_USER: sportsplitter
       POSTGRES_PASSWORD: sportsplitter
       POSTGRES_DB: sportsplitter
     volumes:
       - db-data:/var/lib/postgresql/data
+    # laisse le temps à PostgreSQL de s'arrêter proprement (sinon « recovery » au démarrage suivant)
+    stop_signal: SIGINT
+    stop_grace_period: 30s
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sportsplitter"]
       interval: 5s
@@ -14,6 +20,8 @@ services:
 
   backend:
     build: ./backend
+    image: sportsplitter-backend
+    container_name: sportsplitter-backend
     environment:
       DATABASE_URL: postgresql+psycopg://sportsplitter:sportsplitter@db:5432/sportsplitter
     depends_on:
@@ -24,6 +32,8 @@ services:
 
   frontend:
     build: ./frontend
+    image: sportsplitter-frontend
+    container_name: sportsplitter-frontend
     depends_on:
       - backend
     ports:

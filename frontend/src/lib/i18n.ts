@@ -53,6 +53,8 @@ const fr = {
   "onb.start": "C'est parti",
   "onb.prev": "Précédent",
   "onb.next": "Suivant",
+  "onb.replay": "Revoir l'animation",
+  "demo.pool": "Piscine",
 
   // planning
   "planning.title": "Emploi du temps",
@@ -216,6 +218,29 @@ const fr = {
   "ready.noPlace": "Le sport « {sport} » n'a aucun lieu.",
   "ready.neverAvailable": "Le lieu « {place} » n'a aucune disponibilité.",
   "error.export": "Export impossible",
+  "fix.label": "Solution :",
+  "fix.no_timetable": "Importez votre emploi du temps Excel depuis la page Planning.",
+  "fix.unknown_level": "Créez le niveau « {level} » dans Classes (bouton « Les créer ») ou corrigez son nom dans l'Excel.",
+  "fix.level_unused": "Supprimez ce niveau ou vérifiez qu'il est écrit comme dans l'emploi du temps.",
+  "fix.level_no_sport": "Ajoutez au moins un sport à « {level} » dans Classes.",
+  "fix.sport_no_place": "Ajoutez un lieu à « {sport} » dans Sports.",
+  "fix.place_never_available": "Peignez des disponibilités pour « {place} » dans Lieux (bouton « Tout »).",
+  "fix.duplicate_level": "Renommez ou supprimez l'un des niveaux « {level} ».",
+  "fix.too_many_priority": "Décochez « Prioritaire » sur certains sports de « {level} », ou passez-le en trimestre.",
+  "fix.priority_impossible": "Ajoutez un lieu à « {sport} » ou rendez ses lieux disponibles sur tous les créneaux de « {level} ».",
+  "fix.barrette_single": "Décochez « Barrette » pour « {sport} », ou mettez {min} classes de « {level} » sur chaque créneau dans l'Excel.",
+  "fix.sport_period_unavailable": "Rendez un lieu de « {sport} » disponible pendant cette période, ou ajoutez-lui un autre lieu.",
+  "fix.level_blocked": "Élargissez les disponibilités des lieux des sports de « {level} », ou ajoutez-lui un sport dont les lieux sont libres.",
+  "fix.not_enough_sports": "Ajoutez des sports à « {level} », ou autorisez la répétition dans Administration.",
+  "fix.no_solution": "Augmentez la capacité (« Classes ») des lieux les plus demandés, ajoutez des disponibilités ou un nouveau lieu.",
+  "fix.winter_limit": "Ajoutez un lieu couvert, rendez-le disponible en hiver, ou augmentez le nombre d'écarts tolérés dans Administration.",
+  "fix.relaxed": "Pour un planning parfait, ajoutez un lieu couvert disponible en hiver.",
+  "fix.winter_outdoor": "Ajoutez un lieu couvert à ce sport ou rendez-en un disponible en hiver.",
+  "fix.ready.timetable": "Cliquez sur « Importer un fichier » ou téléchargez le modèle.",
+  "fix.ready.missingLevel": "Allez dans Classes et cliquez sur « Les créer ».",
+  "fix.ready.noSport": "Dans Classes, cliquez sur « Ajouter » sous « {level} ».",
+  "fix.ready.noPlace": "Dans Sports, ajoutez un lieu à « {sport} ».",
+  "fix.ready.neverAvailable": "Dans Lieux, cliquez sur « Tout » pour « {place} » puis ajustez.",
   "error.http": "Erreur {status}",
 };
 
@@ -270,6 +295,8 @@ const en: Record<Key, string> = {
   "onb.start": "Let's go",
   "onb.prev": "Previous",
   "onb.next": "Next",
+  "onb.replay": "Replay the animation",
+  "demo.pool": "Pool",
 
   "planning.title": "Timetable",
   "planning.subtitle.import": "Import the Excel grid of a typical week: days as columns, slots as rows, and in each cell the levels that have PE.",
@@ -425,6 +452,29 @@ const en: Record<Key, string> = {
   "ready.noPlace": "Sport “{sport}” has no place.",
   "ready.neverAvailable": "Place “{place}” is never available.",
   "error.export": "Export failed",
+  "fix.label": "Fix:",
+  "fix.no_timetable": "Import your Excel timetable from the Planning page.",
+  "fix.unknown_level": "Create level “{level}” in Classes (“Create them” button) or fix its name in the Excel file.",
+  "fix.level_unused": "Delete this level or check it is spelled as in the timetable.",
+  "fix.level_no_sport": "Add at least one sport to “{level}” in Classes.",
+  "fix.sport_no_place": "Add a place to “{sport}” in Sports.",
+  "fix.place_never_available": "Paint availability for “{place}” in Places (“All” button).",
+  "fix.duplicate_level": "Rename or delete one of the “{level}” levels.",
+  "fix.too_many_priority": "Untick “Priority” on some sports of “{level}”, or switch it to terms.",
+  "fix.priority_impossible": "Add a place to “{sport}” or make its places available on every slot of “{level}”.",
+  "fix.barrette_single": "Untick “Paired” for “{sport}”, or put {min} classes of “{level}” on each slot in the Excel file.",
+  "fix.sport_period_unavailable": "Make one of “{sport}”'s places available during that period, or give it another place.",
+  "fix.level_blocked": "Widen the availability of the places used by “{level}”'s sports, or add a sport whose places are free.",
+  "fix.not_enough_sports": "Add sports to “{level}”, or allow repetition in Admin.",
+  "fix.no_solution": "Increase the capacity (“Classes”) of the busiest places, add availability or a new place.",
+  "fix.winter_limit": "Add an indoor place, make it available in winter, or raise the tolerated exceptions in Admin.",
+  "fix.relaxed": "For a perfect planning, add an indoor place available in winter.",
+  "fix.winter_outdoor": "Add an indoor place to this sport or make one available in winter.",
+  "fix.ready.timetable": "Click “Import a file” or download the template.",
+  "fix.ready.missingLevel": "Go to Classes and click “Create them”.",
+  "fix.ready.noSport": "In Classes, click “Add” under “{level}”.",
+  "fix.ready.noPlace": "In Sports, add a place to “{sport}”.",
+  "fix.ready.neverAvailable": "In Places, click “All” for “{place}” then adjust.",
   "error.http": "Error {status}",
 };
 
@@ -444,6 +494,13 @@ export function translateCode(lang: Lang, code: string, params: Params | undefin
     p.period = DICTS[lang][`period.${p.period as Period}` as Key];
   }
   return translate(lang, key, p);
+}
+
+/** Suggestion de correction pour un problème (code API ou clé « ready.* »). */
+export function translateFix(lang: Lang, code: string, params: Params | undefined): string | null {
+  const key = `fix.${code}` as Key;
+  if (!(key in DICTS[lang])) return null;
+  return translate(lang, key, params ?? {});
 }
 
 export const segmentKey = (s: Segment) => `segment.${s}` as Key;

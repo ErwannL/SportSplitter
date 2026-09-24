@@ -9,6 +9,7 @@ import type { Key } from "../lib/i18n";
 import { readiness } from "../lib/readiness";
 import { canEditRules, usePrefs, useT } from "../prefs";
 import { useStore } from "../store";
+import { Flag } from "./Flag";
 import { Onboarding } from "./Onboarding";
 import { StepGuide } from "./StepGuide";
 
@@ -106,12 +107,14 @@ export function Layout() {
                 key={l}
                 onClick={() => setLang(l)}
                 aria-pressed={lang === l}
+                title={l === "fr" ? "Français" : "English"}
                 className={clsx(
-                  "flex-1 rounded-lg px-2 py-1 text-xs font-semibold uppercase transition",
+                  "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold uppercase transition",
                   lang === l ? "bg-indigo-600 text-on" : "hover:text-on",
                 )}
               >
-                {l}
+                <Flag lang={l} />
+                {!collapsed && l}
               </button>
             ))}
           </div>

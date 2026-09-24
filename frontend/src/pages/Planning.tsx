@@ -1,12 +1,12 @@
 import clsx from "clsx";
 import {
-  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Download, FileSpreadsheet, Loader2, RefreshCw,
+  AlertCircle, ArrowRight, CheckCircle2, Lightbulb, ChevronLeft, ChevronRight, CircleAlert, Download, FileSpreadsheet, Loader2, RefreshCw,
   Send, Shuffle, Snowflake, Upload, X,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { textOn } from "../lib/colors";
-import { periodKey, segmentKey, translateCode } from "../lib/i18n";
+import { periodKey, segmentKey, translateCode, translateFix } from "../lib/i18n";
 import { usePrefs, useT } from "../prefs";
 import { TimetableGrid } from "../components/TimetableGrid";
 import { Button, IconButton, PageHeader } from "../components/ui";
@@ -93,6 +93,34 @@ function ErrorBox({ text }: { text: string }) {
     <div className="mt-6 flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
       <AlertCircle size={16} /> {text}
     </div>
+  );
+}
+
+function IssueItem({ to, message, fix, warning }: { to: string; message: string; fix: string | null; warning?: boolean }) {
+  const t = useT();
+  return (
+    <li>
+      <Link
+        to={to}
+        className={clsx(
+          "group block rounded-xl border-l-4 bg-slate-50 px-3 py-2 text-sm transition hover:bg-indigo-50",
+          warning ? "border-amber-400" : "border-rose-500",
+        )}
+      >
+        <span className="flex items-start justify-between gap-2 text-slate-800">
+          {message}
+          <ArrowRight size={14} className="mt-0.5 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-indigo-600" />
+        </span>
+        {fix && (
+          <span className="mt-1 flex items-start gap-1.5 text-xs text-slate-500">
+            <Lightbulb size={13} className="mt-px shrink-0 text-amber-500" />
+            <span>
+              <b className="font-semibold text-slate-600">{t("fix.label")}</b> {fix}
+            </span>
+          </span>
+        )}
+      </Link>
+    </li>
   );
 }
 
@@ -193,35 +221,31 @@ function SetupView() {
               ))}
             </ul>
             {status.problems.length > 0 && (
-              <ul className="mt-4 max-h-48 space-y-1 overflow-auto border-t border-slate-100 pt-3 text-xs">
+              <ul className="mt-4 max-h-72 space-y-2 overflow-auto border-t border-slate-100 pt-3">
                 {status.problems.map((p, k) => (
-                  <li key={k}>
-                    <Link to={targetLink(p.targetType, p.target, ws)} className="block rounded px-1 py-0.5 text-slate-500 hover:bg-slate-50 hover:text-indigo-600">
-                      • {t(p.key, p.params)}
-                    </Link>
-                  </li>
+                  <IssueItem
+                    key={k}
+                    to={targetLink(p.targetType, p.target, ws)}
+                    message={t(p.key, p.params)}
+                    fix={translateFix(lang, p.key, p.params)}
+                  />
                 ))}
               </ul>
             )}
           </div>
           {result && result.status === "infeasible" && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800">
-              <h3 className="mb-1 flex items-center gap-2 font-semibold"><AlertCircle size={16} /> {t("planning.none")}</h3>
-              <p className="mb-2 text-xs opacity-80">{t("planning.noneHint")}</p>
-              <ul className="space-y-1">
+            <div className="rounded-2xl border border-rose-200 bg-white p-5 shadow-sm">
+              <h3 className="mb-1 flex items-center gap-2 font-semibold text-rose-600"><AlertCircle size={18} /> {t("planning.none")}</h3>
+              <p className="mb-3 text-xs text-slate-500">{t("planning.noneHint")}</p>
+              <ul className="space-y-2">
                 {[...result.issues].sort((a, b) => (a.severity === b.severity ? 0 : a.severity === "error" ? -1 : 1)).map((i, k) => (
-                  <li key={k}>
-                    <Link
-                      to={targetLink(i.targetType, i.target, ws)}
-                      className={clsx(
-                        "flex gap-1 rounded-lg px-2 py-1 underline-offset-2 transition hover:bg-rose-100 hover:underline",
-                        i.severity === "warning" && "opacity-70",
-                      )}
-                    >
-                      <span>•</span>
-                      <span>{translateCode(lang, i.code, i.params, i.message)}</span>
-                    </Link>
-                  </li>
+                  <IssueItem
+                    key={k}
+                    to={targetLink(i.targetType, i.target, ws)}
+                    message={translateCode(lang, i.code, i.params, i.message)}
+                    fix={translateFix(lang, i.code, i.params)}
+                    warning={i.severity === "warning"}
+                  />
                 ))}
               </ul>
             </div>
