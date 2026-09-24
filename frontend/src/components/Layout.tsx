@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import {
-  Check, CircleHelp, CloudOff, GraduationCap, Home, Loader2, MapPin, Moon, PanelLeftClose, PanelLeftOpen, ShieldCheck, Sun,
+  Check, CircleHelp, CloudOff, GraduationCap, Home, Loader2, MapPin, Moon, PanelLeftClose, PanelLeftOpen, ShieldCheck, SlidersHorizontal, Sun,
   Volleyball,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -49,7 +49,8 @@ export function Layout() {
   const save = useStore((s) => s.save);
   const { collapsed, toggleCollapsed, theme, setTheme, lang, setLang, me, openOnboarding } = usePrefs();
   const status = readiness(ws);
-  const onAdmin = useLocation().pathname.startsWith("/admin");
+  const path = useLocation().pathname;
+  const onAdmin = path.startsWith("/admin") || path.startsWith("/configuration");
 
   return (
     <div className="flex h-screen bg-slate-50 text-slate-900">
@@ -85,8 +86,12 @@ export function Layout() {
               )}
             </NavLink>
           ))}
+          <NavLink to="/configuration" title={t("nav.config")} className={({ isActive }) => clsx(linkClass(collapsed)({ isActive }), "mt-4")}>
+            <SlidersHorizontal size={20} />
+            {!collapsed && <span className="flex-1 text-sm font-medium">{t("nav.config")}</span>}
+          </NavLink>
           {canEditRules(me) && (
-            <NavLink to="/admin" title={t("nav.admin")} className={({ isActive }) => clsx(linkClass(collapsed)({ isActive }), "mt-4")}>
+            <NavLink to="/admin" title={t("nav.admin")} className={linkClass(collapsed)}>
               <ShieldCheck size={20} />
               {!collapsed && <span className="flex-1 text-sm font-medium">{t("nav.admin")}</span>}
             </NavLink>

@@ -5,6 +5,7 @@ import { Layout } from "./components/Layout";
 import { api } from "./lib/api";
 import { AdminPage } from "./pages/Admin";
 import { ClassesPage } from "./pages/Classes";
+import { ConfigurationPage } from "./pages/Configuration";
 import { PlacesPage } from "./pages/Places";
 import { PlanningPage } from "./pages/Planning";
 import { SportsPage } from "./pages/Sports";
@@ -20,6 +21,7 @@ export function AppRoutes() {
         <Route path="classes" element={<ClassesPage />} />
         <Route path="sports" element={<SportsPage />} />
         <Route path="lieux" element={<PlacesPage />} />
+        <Route path="configuration" element={<ConfigurationPage />} />
         <Route path="admin" element={canEditRules(me) ? <AdminPage /> : <Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

@@ -123,12 +123,21 @@ class Settings(Camel):
     time_limit: float = Field(20.0, gt=0, le=600, alias="timeLimit")
 
 
+class Preferences(Camel):
+    """Réglages de l'algorithme choisis par l'utilisateur (onglet Configuration)."""
+
+    # sens de remplissage de la grille à privilégier
+    fill_vertical: Literal["top", "bottom", "none"] = Field("top", alias="fillVertical")
+    fill_horizontal: Literal["left", "right", "none"] = Field("left", alias="fillHorizontal")
+
+
 class Workspace(Camel):
     timetable: Timetable | None = None
     levels: list[Level] = Field(default_factory=list)
     sports: list[Sport] = Field(default_factory=list)
     places: list[Place] = Field(default_factory=list)
     settings: Settings = Field(default_factory=Settings)
+    preferences: Preferences = Field(default_factory=Preferences)
 
 
 # ---------- Résultats ----------
@@ -169,6 +178,7 @@ class Solution(Camel):
     index: int
     plan: dict[str, dict[str, str]]  # levelId -> period -> sportId
     weeks: int = 1  # longueur du cycle commun (PPCM des cycles des niveaux)
+    fill_cost: int = Field(0, alias="fillCost")  # écart au sens de remplissage préféré (plus bas = mieux)
     assignments: list[Assignment]
     violations: list[Violation] = []
 

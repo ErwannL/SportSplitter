@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { Check, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useT } from "../prefs";
 import { IssueBadge } from "./IssueList";
 
@@ -166,12 +166,31 @@ export function SectionLabel({ children }: { children: ReactNode }) {
   return <div className="px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{children}</div>;
 }
 
-export function Chip({ label, color, onRemove, sub }: { label: string; color?: string; onRemove?: () => void; sub?: ReactNode }) {
+export function Chip({
+  label,
+  color,
+  onRemove,
+  sub,
+  to,
+}: {
+  label: string;
+  color?: string;
+  onRemove?: () => void;
+  sub?: ReactNode;
+  /** lien vers l'élément dans son onglet */
+  to?: string;
+}) {
   const t = useT();
   return (
-    <div className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+    <div className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition hover:border-indigo-200">
       {color && <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: color }} />}
-      <span className="flex-1 truncate text-sm font-medium text-slate-700">{label}</span>
+      {to ? (
+        <Link to={to} title={t("common.open", { name: label })} className="flex-1 truncate text-sm font-medium text-slate-700 hover:text-indigo-600 hover:underline">
+          {label}
+        </Link>
+      ) : (
+        <span className="flex-1 truncate text-sm font-medium text-slate-700">{label}</span>
+      )}
       {sub}
       {onRemove && (
         <button onClick={onRemove} aria-label={t("common.remove", { name: label })} className="text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-rose-500">

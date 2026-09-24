@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { vi } from "vitest";
 import { useStore } from "../store";
 import type { Workspace } from "../types";
-import { defaultSettings } from "../store";
+import { defaultPreferences, defaultSettings } from "../store";
 
 export function Loc() {
   const l = useLocation();
@@ -53,6 +53,7 @@ export const readyWs = (): Workspace => ({
     { id: "p1", name: "Stade", color: "#10b981", outdoor: true, capacity: 2, availability: { "0-0": ["Q1", "Q2", "Q3", "Q4"] } },
   ],
   settings: defaultSettings(),
+  preferences: defaultPreferences(),
 });
 
 export const setWs = (ws: Workspace) => useStore.setState({ ws });

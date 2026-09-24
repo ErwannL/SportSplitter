@@ -94,6 +94,15 @@ def _available(ws: Workspace, place_ids: list[str], cand: Candidate, period: str
                for pid in place_ids if pid in places)
 
 
+def fill_cost(ws: Workspace, cand: Candidate) -> int:
+    """Coût d'un candidat selon le sens de remplissage préféré : le jour compte avant l'heure."""
+    pref = ws.preferences
+    rows, days = len(ws.timetable.rows), len(ws.timetable.days)  # type: ignore[union-attr]
+    h = {"left": cand.day, "right": days - 1 - cand.day, "none": 0}[pref.fill_horizontal]
+    v = {"top": cand.row, "bottom": rows - (cand.row + cand.span), "none": 0}[pref.fill_vertical]
+    return h * rows + v
+
+
 def diagnose(ws: Workspace) -> list[Issue]:
     """Causes évidentes d'impossibilité, niveau par niveau."""
     cfg = ws.settings
@@ -274,6 +283,7 @@ class _Model:
         self.winter_count = sum(self.v.values())
         self.sep_count = sum(self.sep)
         self.prio_count = sum(self.prio_used)
+        self.fill = sum(fill_cost(ws, self.sessions[qi].candidates[ci]) * var for (qi, ci), var in self.y.items())
 
     def extract(self, solver, index: int) -> Solution:
         plan: dict[str, dict[str, str]] = {}
@@ -306,7 +316,10 @@ class _Model:
                     violations.append(Violation(rule="same_place", levelId=a.level_id, period=a.period,
                                                 placeId=pl.place_id, params=params,
                                                 message=render("same_place", params)))
-        return Solution(index=index, plan=plan, weeks=self.weeks, assignments=assignments, violations=violations)
+        cost = sum(fill_cost(self.ws, self.sessions[qi].candidates[ci]) for (qi, ci), var in self.y.items()
+                   if solver.value(var))
+        return Solution(index=index, plan=plan, weeks=self.weeks, fillCost=cost, assignments=assignments,
+                        violations=violations)
 
 
 class _Collector(cp_model.CpSolverSolutionCallback):
@@ -331,8 +344,8 @@ class _Collector(cp_model.CpSolverSolutionCallback):
             self.stop_search()
 
 
-def _optimum(ws: Workspace) -> tuple[int, int, int] | None:
-    """(écarts d'hiver, lieux partagés, sports prioritaires placés) optimaux, par ordre de priorité."""
+def _optimum(ws: Workspace) -> tuple[int, int, int, int, dict] | None:
+    """Optimum lexicographique : écarts d'hiver, lieux partagés, sports prioritaires placés, puis sens de remplissage."""
     model = _Model(ws)
     big = len(model.prio_used) + 1
     bigger = big * (len(model.sep) + 1)
@@ -341,20 +354,34 @@ def _optimum(ws: Workspace) -> tuple[int, int, int] | None:
     solver.parameters.max_time_in_seconds = ws.settings.time_limit
     if solver.solve(model.m) not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return None
-    return (int(solver.value(model.winter_count)), int(solver.value(model.sep_count)),
-            int(solver.value(model.prio_count)))
-
-
-def _enumerate(ws: Workspace, winter: int, sep: int, prio: int) -> _Collector:
-    model = _Model(ws)
+    winter, sep, prio = (int(solver.value(model.winter_count)), int(solver.value(model.sep_count)),
+                         int(solver.value(model.prio_count)))
     model.m.add(model.winter_count == winter)
     model.m.add(model.sep_count == sep)
     model.m.add(model.prio_count == prio)
+    model.m.minimize(model.fill)
+    solver.solve(model.m)
+    hint = {key: solver.value(var) for key, var in model.y.items()}
+    return winter, sep, prio, int(solver.value(model.fill)), hint
+
+
+def _enumerate(ws: Workspace, winter: int, sep: int, prio: int, fill: int, hint: dict) -> _Collector:
+    model = _Model(ws)
+    for key, value in hint.items():  # part du meilleur placement trouvé
+        model.m.add_hint(model.y[key], value)
+    model.m.add(model.winter_count == winter)
+    model.m.add(model.sep_count == sep)
+    model.m.add(model.prio_count == prio)
+    # autour du meilleur remplissage : chaque séance peut s'en écarter d'environ un jour
+    model.m.add(model.fill <= fill + len(model.sessions) * len(ws.timetable.rows))  # type: ignore[union-attr]
     solver = cp_model.CpSolver()
     solver.parameters.enumerate_all_solutions = True
     solver.parameters.max_time_in_seconds = ws.settings.time_limit
     col = _Collector(model, ws.settings.max_solutions)
     solver.solve(model.m, col)
+    col.solutions.sort(key=lambda sol: sol.fill_cost)
+    for i, sol in enumerate(col.solutions):
+        sol.index = i
     return col
 
 
@@ -371,7 +398,7 @@ def solve(ws: Workspace) -> SolveResult:
     if best is None:
         return SolveResult(status="infeasible", issues=issues + diag + [issue("no_solution", target_type="place")])
 
-    winter, sep, prio = best
+    winter, sep, prio, fill, hint = best
     cfg = ws.settings
     limits = []
     if winter > cfg.max_winter_violations:
@@ -381,7 +408,7 @@ def solve(ws: Workspace) -> SolveResult:
     if limits:
         return SolveResult(status="infeasible", issues=issues + limits)
 
-    col = _enumerate(ws, winter, sep, prio)
+    col = _enumerate(ws, winter, sep, prio, fill, hint)
     if winter or sep:
         issues = issues + [issue("relaxed", severity="warning", count=winter + sep)]
     return SolveResult(status="relaxed" if winter or sep else "ok", solutions=col.solutions,

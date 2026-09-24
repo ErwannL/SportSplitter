@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultSettings } from "../store";
+import { defaultPreferences, defaultSettings } from "../store";
 import { isReady, readiness } from "./readiness";
 import type { Workspace } from "../types";
 
@@ -14,6 +14,7 @@ const base = (): Workspace => ({
   sports: [{ id: "s", name: "Bad", priority: false, barrette: false, placeIds: ["p"] }],
   places: [{ id: "p", name: "Gym", color: "#000000", outdoor: false, capacity: 1, availability: { "0-0": ["Q1"] } }],
   settings: defaultSettings(),
+  preferences: defaultPreferences(),
 });
 
 describe("readiness", () => {

@@ -1,5 +1,5 @@
 import { Volleyball } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TabIssues } from "../components/IssueList";
 import { useT } from "../prefs";
 import { useStore } from "../store";
@@ -53,6 +53,7 @@ export function SportsPage() {
                       <Chip
                         key={id}
                         label={pl.name}
+                        to={`/lieux?focus=${pl.id}`}
                         color={pl.color}
                         sub={pl.outdoor ? <span className="text-[10px] font-semibold text-emerald-600">{t("sports.ext")}</span> : undefined}
                         onRemove={() => s.updateSport(sp.id, { placeIds: sp.placeIds.filter((x) => x !== id) })}
@@ -74,9 +75,13 @@ export function SportsPage() {
                 <div className="mt-auto flex flex-wrap gap-1 pt-2">
                   {levels.length ? (
                     levels.map((l) => (
-                      <span key={l.id} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                      <Link
+                        key={l.id}
+                        to={`/classes?focus=${l.id}`}
+                        className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 transition hover:bg-indigo-50 hover:text-indigo-600"
+                      >
                         {l.name}
-                      </span>
+                      </Link>
                     ))
                   ) : (
                     <span className="text-xs text-slate-400">{t("sports.noClass")}</span>

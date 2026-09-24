@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { api } from "./lib/api";
 import { placeColor } from "./lib/colors";
 import { norm } from "./lib/readiness";
-import type { Issue, Level, Place, Settings, SolveResult, Sport, Timetable, Workspace } from "./types";
+import type { Issue, Level, Place, Preferences, Settings, SolveResult, Sport, Timetable, Workspace } from "./types";
 
 export const LEVEL_PRESETS: Record<string, string[]> = {
   Primaire: ["CP", "CE1", "CE2", "CM1", "CM2"],
@@ -27,12 +27,15 @@ export const defaultSettings = (): Settings => ({
   timeLimit: 20,
 });
 
+export const defaultPreferences = (): Preferences => ({ fillVertical: "top", fillHorizontal: "left" });
+
 export const emptyWorkspace = (): Workspace => ({
   timetable: null,
   levels: [],
   sports: [],
   places: [],
   settings: defaultSettings(),
+  preferences: defaultPreferences(),
 });
 
 /** Complète un espace de travail chargé (anciennes versions sans certains champs). */
@@ -41,6 +44,7 @@ export const hydrate = (ws: Partial<Workspace>): Workspace => ({
   ...ws,
   levels: (ws.levels ?? []).map((l) => ({ ...l, groups: l.groups ?? 1, cycle: l.cycle ?? [[120]] })),
   settings: { ...defaultSettings(), ...ws.settings },
+  preferences: { ...defaultPreferences(), ...ws.preferences },
 });
 
 let counter = 0;
@@ -68,6 +72,7 @@ interface State {
   updatePlace: (id: string, patch: Partial<Place>) => void;
   removePlace: (id: string) => void;
   updateSettings: (patch: Partial<Settings>) => void;
+  updatePreferences: (patch: Partial<Preferences>) => void;
   setResult: (r: SolveResult | null) => void;
   /** Sauvegarde immédiatement les modifications en attente (fermeture de l'onglet…). */
   flush: () => Promise<void>;
@@ -192,6 +197,8 @@ export const useStore = create<State>((set, get) => {
         places: ws.places.filter((p) => p.id !== id),
         sports: ws.sports.map((s) => ({ ...s, placeIds: s.placeIds.filter((p) => p !== id) })),
       })),
+
+    updatePreferences: (patch) => mutate((ws) => ({ ...ws, preferences: { ...ws.preferences, ...patch } })),
 
     updateSettings: (patch) => mutate((ws) => ({ ...ws, settings: { ...ws.settings, ...patch } })),
 

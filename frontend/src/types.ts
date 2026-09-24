@@ -79,12 +79,18 @@ export interface Me {
   permissions: string[];
 }
 
+export interface Preferences {
+  fillVertical: "top" | "bottom" | "none";
+  fillHorizontal: "left" | "right" | "none";
+}
+
 export interface Workspace {
   timetable: Timetable | null;
   levels: Level[];
   sports: Sport[];
   places: Place[];
   settings: Settings;
+  preferences: Preferences;
 }
 
 export interface Placement {
@@ -119,6 +125,7 @@ export interface Solution {
   index: number;
   plan: Record<string, Partial<Record<Period, string>>>;
   weeks: number;
+  fillCost?: number;
   assignments: Assignment[];
   violations: Violation[];
 }

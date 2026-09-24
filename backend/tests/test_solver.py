@@ -316,3 +316,18 @@ def test_validation_codes():
     assert res.status == "infeasible" and not res.solutions
     assert codes(validate(workspace(None, [], [], []))) == {"no_timetable"}
     assert codes(validate(workspace(tt, [], [], []))) == {"row_no_duration", "no_level"}
+
+
+def test_fill_direction_preference():
+    from .factories import grid, level, place, slots, sport, workspace
+
+    tt = grid(days=3, minutes=[60, 60, 60])
+    ws = workspace(tt, [level("6e", ["a"], cycle=[[60]])], [sport("a", ["gym"])], [place("gym", slots(tt))])
+    first = solve(ws).solutions[0].assignments[0]
+    assert (first.day, first.row) == (0, 0)  # haut gauche par défaut : lundi 8h
+    ws.preferences.fill_vertical, ws.preferences.fill_horizontal = "bottom", "right"
+    first = solve(ws).solutions[0].assignments[0]
+    assert (first.day, first.row) == (2, 2)
+    ws.preferences.fill_vertical, ws.preferences.fill_horizontal = "none", "none"
+    res = solve(ws)
+    assert all(s.fill_cost == 0 for s in res.solutions)

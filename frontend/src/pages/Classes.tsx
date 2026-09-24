@@ -74,6 +74,7 @@ export function ClassesPage() {
                       <Chip
                         key={id}
                         label={sp.name}
+                        to={`/sports?focus=${sp.id}`}
                         sub={sp.priority ? <span className="rounded bg-indigo-100 px-1.5 text-[10px] font-semibold text-indigo-700">{t("sports.prio")}</span> : undefined}
                         onRemove={() => s.updateLevel(lv.id, { sportIds: lv.sportIds.filter((x) => x !== id) })}
                       />

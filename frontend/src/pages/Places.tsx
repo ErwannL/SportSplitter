@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { AlertTriangle, CalendarX2, Eraser, MapPin, Minus, PaintBucket, Plus, Snowflake, Wand2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TimetableGrid } from "../components/TimetableGrid";
 import { AddColumn, Board, Button, Checkbox, Column, EmptyState, IconButton, PageHeader, SectionLabel } from "../components/ui";
 import { colorDistance, isTooClose, placeColor, SWATCHES, TOO_CLOSE } from "../lib/colors";
@@ -165,6 +165,19 @@ export function PlacesPage() {
                       <AlertTriangle size={14} /> {t("places.similar", { name: clash.name })}
                     </div>
                   )}
+                  <div className="flex flex-wrap items-center gap-1 text-xs">
+                    <span className="text-slate-400">{t("places.usedBy")}</span>
+                    {ws.sports.filter((sp) => sp.placeIds.includes(pl.id)).map((sp) => (
+                      <Link
+                        key={sp.id}
+                        to={`/sports?focus=${sp.id}`}
+                        className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 transition hover:bg-indigo-50 hover:text-indigo-600"
+                      >
+                        {sp.name}
+                      </Link>
+                    ))}
+                    {!ws.sports.some((sp) => sp.placeIds.includes(pl.id)) && <span className="italic text-slate-400">{t("places.unused")}</span>}
+                  </div>
                   <div className="-mx-1 grid grid-cols-2 divide-x divide-slate-100 rounded-xl border border-slate-100">
                     <Checkbox label={t("places.outdoor")} hint={t("places.outdoorHint")} checked={pl.outdoor} onChange={(outdoor) => s.updatePlace(pl.id, { outdoor })} />
                     <div className="flex items-center justify-between px-3" title={t("places.capacityHint")}>
