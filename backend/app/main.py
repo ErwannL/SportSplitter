@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from . import excel_io
+from . import debug, excel_io
 from .db import Store
 from .schemas import Issue, Solution, SolveResult, Timetable, Workspace
 from .solver import solve
@@ -101,3 +101,10 @@ def export(req: ExportRequest = Body(...)):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     name = "planning.xlsx" if len(req.solutions) == 1 else "plannings.xlsx"
     return Response(data, media_type=XLSX, headers={"Content-Disposition": f'attachment; filename="{name}"'})
+
+
+@app.get("/api/debug/dump")
+def debug_dump(store: Store = Depends(get_store)):
+    """Zip de diagnostic : données actuelles, erreurs et avertissements du calcul."""
+    name, data = debug.dump_zip(store.load())
+    return Response(data, media_type="application/zip", headers={"Content-Disposition": f'attachment; filename="{name}"'})

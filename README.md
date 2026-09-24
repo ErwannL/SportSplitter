@@ -46,6 +46,20 @@ Les professeurs d'EPS indiquent quand l'EPS est possible ; SportsSplitter constr
 La page **Administration** permet de modifier les règles métier de l'algorithme (hiver souple, strict ou ignoré, nombre d'écarts tolérés, sports prioritaires obligatoires, répétition des sports, taille minimale d'une barrette, nombre de solutions et temps de calcul).
 En développement, tout le monde est administrateur. Le rôle est donné par `SPORTSPLITTER_ROLE` (`admin` par défaut) en attendant la gestion des utilisateurs, et l'API refuse la modification des règles aux autres rôles.
 
+## Dump de diagnostic
+
+Quand un planning ne sort pas comme prévu, avec l'application lancée :
+
+```bash
+./scripts/dump.sh      # ou : make dump
+```
+
+Le script télécharge `test/dumps/dump_AAAA-MM-JJ_HH-MM-SS.zip`, le commite et le pousse sur la branche courante. Le zip contient :
+
+* `LISEZMOI.txt` : résumé lisible de la grille (cases ouvertes et fermées), des niveaux, des sports, des lieux et des réglages ;
+* `erreurs.txt` et `avertissements.txt` : le résultat du calcul ;
+* `donnees.json` et `resultat.json` : les données complètes et le résultat brut.
+
 ## Tests
 
 `make test` lance pytest et vitest avec une couverture exigée de 100 %.
