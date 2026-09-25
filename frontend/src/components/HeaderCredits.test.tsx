@@ -7,21 +7,21 @@ import { HeaderCredits } from "./HeaderCredits";
 describe("HeaderCredits", () => {
   it("rend les deux liens (href, target, rel, aria-label) en français", () => {
     render(<HeaderCredits />);
-    const owner = screen.getByRole("link", { name: "Propulsé par Orqea (nouvel onglet)" });
+    const owner = screen.getByRole("link", { name: "Propulsé par Orqea" });
     const author = screen.getByRole("link", { name: "Développé par Erwann Laplante (nouvel onglet)" });
     expect(owner).toHaveAttribute("href", "https://orqea.dev");
     expect(author).toHaveAttribute("href", "https://github.com/ErwannL");
-    for (const a of [owner, author]) {
-      expect(a).toHaveAttribute("target", "_blank");
-      expect(a).toHaveAttribute("rel", "noreferrer noopener");
-    }
+    // Orqea s'ouvre dans le MÊME onglet (sa session est par onglet), l'auteur dans un nouveau.
+    expect(owner).not.toHaveAttribute("target");
+    expect(author).toHaveAttribute("target", "_blank");
+    expect(author).toHaveAttribute("rel", "noreferrer noopener");
     expect(owner).toHaveTextContent("Propulsé par Orqea");
   });
 
   it("libellés anglais", () => {
     usePrefs.setState({ lang: "en" });
     render(<HeaderCredits />);
-    expect(screen.getByRole("link", { name: "Boosted by Orqea (new tab)" })).toHaveTextContent("Boosted by Orqea");
+    expect(screen.getByRole("link", { name: "Boosted by Orqea" })).toHaveTextContent("Boosted by Orqea");
     expect(screen.getByRole("link", { name: "Developed by Erwann Laplante (new tab)" })).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe("HeaderCredits", () => {
 
   it("compact : seulement « Orqea », aria-label complet ; rien sans propriétaire", () => {
     const { rerender, container } = render(<HeaderCredits compact />);
-    const link = screen.getByRole("link", { name: "Propulsé par Orqea (nouvel onglet)" });
+    const link = screen.getByRole("link", { name: "Propulsé par Orqea" });
     expect(link).toHaveTextContent(/^Orqea$/);
     expect(screen.getAllByRole("link")).toHaveLength(1);
     rerender(<HeaderCredits compact credits={{ owner: { name: "", href: "x" }, author: CREDITS.author }} />);

@@ -23,8 +23,9 @@ export function HeaderCredits({ credits, compact = false, className }: { credits
       {owner.name && (
         <a
           href={owner.href}
-          {...EXTERNAL}
-          aria-label={`${ownerLabel} ${t("credits.newTab")}`}
+          // MÊME onglet : la session d'Orqea vit dans l'onglet (sessionStorage) ;
+          // un nouvel onglet tombait sur la page de connexion d'Orqea.
+          aria-label={ownerLabel}
           title={ownerLabel}
           className="truncate text-xs font-semibold text-side-text transition hover:text-on"
         >
