@@ -22,7 +22,7 @@ def _body(max_solutions=5):
 
 
 def test_me_roles_and_workspace(client):
-    assert client.get("/api/health").json() == {"status": "ok"}
+    assert client.get("/api/health").json() == {"status": "ok", "orqeaUrl": client.app.state.config.orqea_url}
     assert client.get("/api/me").json() == {"sub": "4821", "email": "4821@orqea.dev", "name": "User 4821",
                                             "role": "admin", "permissions": ["edit_workspace", "edit_rules"]}
     body = _body()

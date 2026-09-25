@@ -1,5 +1,6 @@
 import clsx from "clsx";
-import { Check, GraduationCap, Home, Loader2, MapPin, MousePointer2, Send, Upload, Volleyball } from "lucide-react";
+import { Check, GraduationCap, Home, MapPin, MousePointer2, Send, Upload, Volleyball } from "lucide-react";
+import { LogoLoader } from "./Logo";
 import { useEffect, useState, type ReactNode } from "react";
 import { useT } from "../prefs";
 
@@ -165,7 +166,7 @@ function Scene({ scene, f }: { scene: number; f: number }) {
           />
           {generating && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="animate-spin text-indigo-600" size={28} />
+              <LogoLoader size={28} />
             </div>
           )}
         </div>

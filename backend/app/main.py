@@ -87,8 +87,10 @@ public = APIRouter(prefix="/api")
 
 
 @public.get("/health")
-def health():
-    return {"status": "ok"}
+def health(cfg: Config = Depends(get_config)):
+    # `orqeaUrl` : public (c'est un lien), il dit au frontend vers QUEL Orqea
+    # renvoyer — localhost en développement, orqea.dev en production.
+    return {"status": "ok", "orqeaUrl": cfg.orqea_url}
 
 
 class SSORequest(BaseModel):

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { CREDITS, type Credits } from "../lib/credits";
+import { useAuth } from "../auth";
 import { useT } from "../prefs";
 
 const EXTERNAL = { target: "_blank", rel: "noreferrer noopener" } as const;
@@ -9,9 +10,10 @@ const EXTERNAL = { target: "_blank", rel: "noreferrer noopener" } as const;
  * Une ligne disparaît si son nom est vide ; le bloc ne rend rien si les deux le sont.
  * `compact` : seule la mention du propriétaire (menu replié), avec son aria-label complet.
  */
-export function HeaderCredits({ credits = CREDITS, compact = false, className }: { credits?: Credits; compact?: boolean; className?: string }) {
+export function HeaderCredits({ credits, compact = false, className }: { credits?: Credits; compact?: boolean; className?: string }) {
   const t = useT();
-  const { owner, author } = credits;
+  const orqeaUrl = useAuth((s) => s.orqeaUrl);
+  const { owner, author } = credits ?? { ...CREDITS, owner: { ...CREDITS.owner, href: orqeaUrl } };
   const showAuthor = !compact && !!author.name;
   if (!owner.name && !showAuthor) return null;
   const ownerLabel = t("credits.owner", { name: owner.name });

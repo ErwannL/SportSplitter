@@ -92,6 +92,9 @@ qui affiche le payload, le jeton, puis l'URL de redirection `https://sportsplitt
 * Cookie `ss_session` : `HttpOnly`, `SameSite=Lax`, `Secure` quand `SPORTSPLITTER_ENV=production`,
   `Path=/`. Contenu : JWT HS256 (`sub`, `role`, `iat`, `exp`, audience `sportsplitter-session`).
 * Durée : **8 h**, sans rafraîchissement silencieux. `POST /api/auth/logout` efface le cookie (204).
+  L'interface ne propose **pas** de déconnexion : la session vient d'Orqea, le menu offre
+  « Retour sur Orqea » (vers `SPORTSPLITTER_ORQEA_URL`). Se déconnecter de SportSplitter seul
+  laissait croire qu'on était sorti d'Orqea.
 * `GET /api/me` ⇒ 401 sans session ; sinon `{ sub, email, name, role, permissions }`
   (`edit_workspace` pour tous, `edit_rules` pour `admin`).
 * **CSRF** : toute requête `POST/PUT/PATCH/DELETE` (sauf `/api/auth/sso`) exige l'en-tête
@@ -133,7 +136,7 @@ redémarrez (toutes les sessions deviennent invalides) ; pour couper Orqea, chan
 | `SPORTSPLITTER_SSO_SECRET` | secret partagé avec Orqea (≥ 32 car.) | absent ⇒ tout refusé (`SSO_DISABLED`) |
 | `SPORTSPLITTER_SESSION_SECRET` | signe les sessions | absent en prod ⇒ le démarrage échoue ; en dev, valeur aléatoire par processus |
 | `SPORTSPLITTER_PUBLIC_URL` | origine publique (contrôle `Origin`) | `http://localhost:8090` |
-| `SPORTSPLITTER_ORQEA_URL` | lien « Accès via Orqea » | `https://orqea.dev` |
+| `SPORTSPLITTER_ORQEA_URL` | liens « Accès via Orqea », « Retour sur Orqea » et crédit « Propulsé par Orqea » ; exposé par `GET /api/health` (`orqeaUrl`) pour que le frontend vise l'Orqea de l'environnement (localhost en dev) | `https://orqea.dev` |
 | `SPORTSPLITTER_ENV` | `development` / `production` | `development` |
 | `SPORTSPLITTER_DEV_LOGIN` | active le login de dev | absent |
 | `SPORTSPLITTER_LEGACY_OWNER_SUB` | propriétaire de l'ancien espace unique | absent |

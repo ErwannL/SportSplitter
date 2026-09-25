@@ -49,11 +49,11 @@ describe("SsoPage", () => {
       return jsonRes(readyWs());
     });
     render(<App />);
-    expect(await screen.findByText(/Se déconnecter \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
     expect(window.location.pathname).toBe("/");
     expect(window.location.hash).toBe("");
     // /api/me n'est pas appelé avant l'échange du jeton
-    expect(seen.map((s) => s.url)).toEqual(["/api/auth/sso", "/api/me", "/api/workspace"]);
+    expect(seen.map((s) => s.url).filter((u) => u !== "/api/health")).toEqual(["/api/auth/sso", "/api/me", "/api/workspace"]);
     expect(seen[0]).toMatchObject({ hash: "", path: "/sso" });
     // le fragment a été effacé par replaceState avant l'appel (le routeur fait aussi son propre replaceState)
     const before = replace.mock.calls.slice(0, seen[0].replaced);

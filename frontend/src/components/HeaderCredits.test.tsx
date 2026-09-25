@@ -10,7 +10,7 @@ describe("HeaderCredits", () => {
     const owner = screen.getByRole("link", { name: "Propulsé par Orqea (nouvel onglet)" });
     const author = screen.getByRole("link", { name: "Développé par Erwann Laplante (nouvel onglet)" });
     expect(owner).toHaveAttribute("href", "https://orqea.dev");
-    expect(author).toHaveAttribute("href", "https://github.com/ErwannL/ErwannL");
+    expect(author).toHaveAttribute("href", "https://github.com/ErwannL");
     for (const a of [owner, author]) {
       expect(a).toHaveAttribute("target", "_blank");
       expect(a).toHaveAttribute("rel", "noreferrer noopener");

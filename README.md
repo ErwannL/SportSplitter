@@ -1,6 +1,6 @@
 # SportSplitter by Orqea
 
-> Propulsé par [Orqea](https://orqea.dev) · Développé par [Erwann Laplante](https://github.com/ErwannL/ErwannL)
+> Propulsé par [Orqea](https://orqea.dev) · Développé par [Erwann Laplante](https://github.com/ErwannL)
 
 Génère automatiquement la répartition des sports d'EPS : quelle classe fait quel sport, à quelle période et dans quel lieu, à partir de l'emploi du temps de l'établissement.
 

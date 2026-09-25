@@ -25,6 +25,11 @@ export const useAuth = create<AuthState>((set, get) => ({
   orqeaUrl: DEFAULT_ORQEA_URL,
 
   async check() {
+    // Le lien « Retour sur Orqea » et les crédits doivent viser le BON Orqea
+    // (localhost en dev) même quand aucun 401 n'a encore renseigné l'URL.
+    void api.orqeaUrl().then((url) => {
+      if (url) set({ orqeaUrl: url });
+    });
     try {
       const me = await api.me();
       usePrefs.getState().setMe(me);

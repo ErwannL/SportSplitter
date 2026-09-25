@@ -36,8 +36,8 @@ describe("accès sans session", () => {
     render(<App />);
     expect(await screen.findByText("Accès via Orqea")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Aller sur Orqea/ })).toHaveAttribute("href", "https://orqea.example/app");
-    expect(f).toHaveBeenCalledTimes(1);
-    expect(f.mock.calls[0][0]).toBe("/api/me");
+    // /api/health (public : l'URL d'Orqea de l'environnement) puis /api/me, rien d'autre
+    expect(f.mock.calls.map(([u]) => u).sort()).toEqual(["/api/health", "/api/me"]);
     expectNothingOfTheApp();
   });
   it("401 sans corps JSON : lien Orqea par défaut", async () => {
@@ -57,7 +57,7 @@ describe("accès sans session", () => {
     expectNothingOfTheApp();
     up = true;
     await userEvent.click(screen.getByRole("button", { name: /Réessayer/ }));
-    expect(await screen.findByText(/Se déconnecter \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
     expect(useStore.getState().ws.sports[0].name).toBe("Foot");
   });
   it("écrans en anglais", async () => {
@@ -89,7 +89,7 @@ describe("session expirée en cours d'usage", () => {
       return session ? jsonRes(readyWs()) : denied();
     });
     render(<App />);
-    expect(await screen.findByText(/Se déconnecter \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
     session = false;
     act(() => void useStore.getState().addSport("Tennis"));
     await act(() => useStore.getState().flush());
@@ -103,7 +103,7 @@ describe("session expirée en cours d'usage", () => {
     // reconnexion
     session = true;
     await act(() => useAuth.getState().check());
-    expect(await screen.findByText(/Se déconnecter \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
     expect(useStore.getState().ws.sports.map((s) => s.name)).toEqual(["Foot", "Tennis"]);
     expect(puts).toHaveLength(1);
     expect(JSON.parse(puts[0]).sports).toHaveLength(2);
@@ -116,22 +116,29 @@ describe("session expirée en cours d'usage", () => {
   });
 });
 
-describe("déconnexion", () => {
+describe("retour sur Orqea (pas de déconnexion depuis SportSplitter)", () => {
   async function loggedIn() {
-    const f = mockFetch(async (url) => (url === "/api/me" ? jsonRes(ME) : jsonRes(readyWs())));
+    const f = mockFetch(async (url) => {
+      if (url === "/api/health") return jsonRes({ status: "ok", orqeaUrl: "http://localhost:3001" });
+      return url === "/api/me" ? jsonRes(ME) : jsonRes(readyWs());
+    });
     render(<App />);
-    return { f, button: await screen.findByRole("button", { name: /Se déconnecter \(Alice\)/ }) };
+    return { f, link: await screen.findByRole("link", { name: /Retour sur Orqea \(Alice\)/ }) };
   }
-  it("succès : modifications envoyées, session fermée", async () => {
-    const { f, button } = await loggedIn();
-    act(() => void useStore.getState().addSport("Tennis"));
-    await userEvent.click(button);
-    expect(await screen.findByText("Accès via Orqea")).toBeInTheDocument();
-    const urls = f.mock.calls.map(([u, i]) => `${i?.method ?? "GET"} ${u}`);
-    expect(urls.slice(-2)).toEqual(["PUT /api/workspace", "POST /api/auth/logout"]);
-    expect(useStore.getState().sub).toBe("");
-    expect(useAuth.getState().me).toBeNull();
-    expectNothingOfTheApp();
+  it("le lien vise l'Orqea de L'ENVIRONNEMENT, et aucun bouton de déconnexion n'existe", async () => {
+    const { link } = await loggedIn();
+    await act(async () => {});
+    expect(link).toHaveAttribute("href", "http://localhost:3001");
+    expect(screen.queryByRole("button", { name: /déconnecter/i })).toBeNull();
+    expect(screen.getByRole("link", { name: "Accueil — Planning" })).toHaveAttribute("href", "/");
+  });
+  it("/api/health injoignable : le lien garde l'URL par défaut", async () => {
+    mockFetch(async (url) => {
+      if (url === "/api/health") throw new TypeError("down");
+      return url === "/api/me" ? jsonRes(ME) : jsonRes(readyWs());
+    });
+    render(<App />);
+    expect(await screen.findByRole("link", { name: /Retour sur Orqea/ })).toHaveAttribute("href", "https://orqea.dev");
   });
   it("échec réseau : déconnecté quand même, sans erreur non gérée", async () => {
     await loggedIn();
@@ -155,6 +162,6 @@ describe("déconnexion", () => {
       </MemoryRouter>,
     );
     const aside = document.querySelector("aside")!;
-    expect(within(aside as HTMLElement).getByRole("button", { name: "Sign out" })).toBeInTheDocument();
+    expect(within(aside as HTMLElement).getByRole("link", { name: "Back to Orqea" })).toBeInTheDocument();
   });
 });

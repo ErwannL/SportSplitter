@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import {
-  Check, CircleHelp, CloudOff, GraduationCap, Home, Loader2, MapPin, Moon, PanelLeftClose, LogOut, PanelLeftOpen, ShieldCheck, SlidersHorizontal, Sun,
+  ArrowLeftToLine, Check, CircleHelp, CloudOff, GraduationCap, Home, MapPin, Moon, PanelLeftClose, PanelLeftOpen, ShieldCheck, SlidersHorizontal, Sun,
   Volleyball,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -12,6 +12,7 @@ import { canEditRules, usePrefs, useT } from "../prefs";
 import { useStore } from "../store";
 import { Flag } from "./Flag";
 import { HeaderCredits } from "./HeaderCredits";
+import { Logo, LogoLoader } from "./Logo";
 import { Onboarding } from "./Onboarding";
 import { StepGuide } from "./StepGuide";
 
@@ -30,6 +31,21 @@ const linkClass = (collapsed: boolean) => ({ isActive }: { isActive: boolean }) 
     collapsed && "justify-center",
     isActive ? "bg-indigo-600 text-on shadow-lg shadow-indigo-950/40" : "hover:bg-side-hover hover:text-on",
   );
+
+/** Lien de pied de menu, même allure que `SideButton`. */
+function SideLink({ label, href, icon, collapsed }: { label: string; href: string; icon: ReactNode; collapsed: boolean }) {
+  return (
+    <a
+      href={href}
+      title={label}
+      aria-label={label}
+      className={clsx("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-side-hover hover:text-on", collapsed && "justify-center")}
+    >
+      {icon}
+      {!collapsed && <span>{label}</span>}
+    </a>
+  );
+}
 
 function SideButton({ label, onClick, icon, collapsed }: { label: string; onClick: () => void; icon: ReactNode; collapsed: boolean }) {
   return (
@@ -50,7 +66,8 @@ export function Layout() {
   const ws = useStore((s) => s.ws);
   const save = useStore((s) => s.save);
   const { collapsed, toggleCollapsed, theme, setTheme, lang, setLang, me, openOnboarding } = usePrefs();
-  const logout = useAuth((a) => a.logout);
+  // Pas de déconnexion ici : la session vient d'Orqea, on y RETOURNE (Docs/ORQEA_SSO.md).
+  const orqeaUrl = useAuth((a) => a.orqeaUrl);
   const status = readiness(ws);
   const path = useLocation().pathname;
   const onAdmin = path.startsWith("/admin") || path.startsWith("/configuration");
@@ -59,10 +76,14 @@ export function Layout() {
     <div className="flex h-screen bg-slate-50 text-slate-900">
       <aside className={clsx("flex shrink-0 flex-col bg-side text-side-text transition-[width]", collapsed ? "w-20" : "w-64")}>
         <div className={clsx("flex min-h-16 items-center gap-3 py-2", collapsed ? "justify-center" : "px-5")}>
-          <img src="/favicon.svg" alt="" className="h-9 w-9" />
+          <NavLink to="/" title={t("nav.home")} aria-label={t("nav.home")} className="group shrink-0 rounded-xl">
+            <Logo size={36} mode="hover" />
+          </NavLink>
           {!collapsed && (
             <div className="min-w-0">
-              <span className="block text-lg font-bold leading-tight tracking-tight text-on">{t("app.name")}</span>
+              <NavLink to="/" className="block text-lg font-bold leading-tight tracking-tight text-on hover:text-indigo-300">
+                {t("app.name")}
+              </NavLink>
               {/* en-tête : masqué sous 1024 px et quand le menu est replié (voir le pied du menu) */}
               <HeaderCredits className="hidden lg:flex" />
             </div>
@@ -140,7 +161,7 @@ export function Layout() {
           )}
           <div className="my-1 border-t border-side-hover" />
           <div className={clsx("flex items-center gap-2 px-3 py-1.5 text-xs", collapsed && "justify-center")} title={t("save.hint")}>
-            {save === "saving" && <Loader2 size={14} className="shrink-0 animate-spin" />}
+            {save === "saving" && <LogoLoader size={14} />}
             {(save === "saved" || save === "idle") && <Check size={14} className="shrink-0 text-emerald-400" />}
             {save === "offline" && <CloudOff size={14} className="shrink-0 text-amber-400" />}
             {!collapsed && (
@@ -149,11 +170,11 @@ export function Layout() {
               </span>
             )}
           </div>
-          <SideButton
+          <SideLink
             collapsed={collapsed}
-            label={me.name ? `${t("nav.logout")} (${me.name})` : t("nav.logout")}
-            icon={<LogOut size={18} />}
-            onClick={() => void logout()}
+            label={me.name ? `${t("nav.backToOrqea")} (${me.name})` : t("nav.backToOrqea")}
+            icon={<ArrowLeftToLine size={18} />}
+            href={orqeaUrl}
           />
           <SideButton
             collapsed={collapsed}

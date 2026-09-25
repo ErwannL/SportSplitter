@@ -1,8 +1,9 @@
 import clsx from "clsx";
 import {
-  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Download, FileSpreadsheet, Loader2, RefreshCw,
+  AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, Download, FileSpreadsheet, RefreshCw,
   Send, Shuffle, Snowflake, Upload, X,
 } from "lucide-react";
+import { LogoLoader } from "../components/Logo";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { textOn } from "../lib/colors";
@@ -77,7 +78,7 @@ function ImportHero() {
           disabled={imp.busy}
           className="flex items-center gap-5 rounded-full bg-slate-900 py-5 pl-8 pr-12 text-2xl font-medium text-slate-50 shadow-xl shadow-slate-900/20 transition hover:scale-[1.02] hover:bg-indigo-600 disabled:opacity-70"
         >
-          {imp.busy ? <Loader2 size={34} className="animate-spin" /> : <Upload size={34} />}
+          {imp.busy ? <LogoLoader size={34} /> : <Upload size={34} />}
           {t("planning.import")}
         </button>
         <p className="mt-5 text-sm text-slate-500">{t("planning.drop")}</p>
@@ -183,7 +184,7 @@ function SetupView() {
           <p className="mt-2 text-xs text-slate-500">{t("planning.gridHint")}</p>
           {loading && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-              <Loader2 size={72} className="animate-spin text-indigo-600" strokeWidth={1.5} />
+              <LogoLoader size={72} />
               <span className="rounded-full bg-white px-4 py-1.5 text-sm font-medium text-slate-600 shadow">{t("planning.searching")}</span>
             </div>
           )}
@@ -251,7 +252,7 @@ function SetupView() {
           title={t(ready ? "planning.generate" : "planning.generateLocked")}
           className="group pointer-events-auto flex h-16 items-center gap-3 rounded-full bg-indigo-600 px-8 text-lg font-semibold text-on shadow-xl shadow-indigo-600/30 transition hover:scale-[1.03] hover:bg-indigo-500 disabled:scale-100 disabled:bg-slate-300 disabled:shadow-none"
         >
-          {loading ? <Loader2 className="animate-spin" /> : <Send className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />}
+          {loading ? <LogoLoader size={24} /> : <Send className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />}
           {t("planning.generate")}
         </button>
       </div>
@@ -433,7 +434,7 @@ function ResultView() {
 
         <div className="relative ml-auto">
           <Button variant="primary" onClick={() => setMenu((m) => !m)} disabled={busy}>
-            {busy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} {t("result.download")}
+            {busy ? <LogoLoader size={16} /> : <Download size={16} />} {t("result.download")}
           </Button>
           {menu && (
             <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">

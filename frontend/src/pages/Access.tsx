@@ -1,4 +1,5 @@
-import { ExternalLink, Loader2, RefreshCw, ShieldAlert } from "lucide-react";
+import { ExternalLink, RefreshCw, ShieldAlert } from "lucide-react";
+import { LogoLoader } from "../components/Logo";
 import type { ReactNode } from "react";
 import { useAuth } from "../auth";
 import { useT } from "../prefs";
@@ -52,8 +53,8 @@ export function UnreachableScreen() {
 
 export function LoadingScreen() {
   return (
-    <div className="flex h-screen items-center justify-center text-indigo-600" role="status">
-      <Loader2 className="animate-spin" size={40} />
+    <div className="flex h-screen items-center justify-center" role="status">
+      <LogoLoader size={56} />
     </div>
   );
 }

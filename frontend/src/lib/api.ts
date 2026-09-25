@@ -61,6 +61,17 @@ const jsonBody = (method: string, body: unknown): RequestInit => ({
 });
 
 export const api = {
+  /** Public : l'URL d'Orqea de CET environnement (localhost en dev, orqea.dev en prod). */
+  async orqeaUrl(): Promise<string | null> {
+    try {
+      const res = await fetch("/api/health");
+      const body = (await res.json()) as { orqeaUrl?: string };
+      return body.orqeaUrl ?? null;
+    } catch {
+      return null;
+    }
+  },
+
   /** Session courante ; AuthError si aucune (sans déclencher le gestionnaire global). */
   me: () => request("/api/me", {}, { silent401: true }).then((r) => json<Me>(r)),
 
