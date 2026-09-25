@@ -1,0 +1,10 @@
+# Production : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Les secrets sont OBLIGATOIRES (le démarrage échoue sinon) et viennent de l'environnement ou d'un .env non commité.
+services:
+  backend:
+    environment:
+      SPORTSPLITTER_ENV: production
+      SPORTSPLITTER_SSO_SECRET: ${SPORTSPLITTER_SSO_SECRET:?SPORTSPLITTER_SSO_SECRET est obligatoire en production}
+      SPORTSPLITTER_SESSION_SECRET: ${SPORTSPLITTER_SESSION_SECRET:?SPORTSPLITTER_SESSION_SECRET est obligatoire en production}
+      SPORTSPLITTER_PUBLIC_URL: ${SPORTSPLITTER_PUBLIC_URL:?SPORTSPLITTER_PUBLIC_URL est obligatoire en production}
+      SPORTSPLITTER_DEV_LOGIN: ""

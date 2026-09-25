@@ -1,0 +1,8 @@
+-r requirements.txt
+pytest
+httpx
+# epingle : une version plus recente a active de nouvelles regles et casse la CI
+ruff==0.16.9
+pytest-cov
+# test_refuses_rs256 signe un jeton RS256 (PyJWT a besoin de cryptography pour ca)
+cryptography

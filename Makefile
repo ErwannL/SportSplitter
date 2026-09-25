@@ -1,29 +1,46 @@
+.PHONY: dump sso-url up down logs dev-backend dev-frontend install test test-backend test-frontend lint
 
-.PHONY: start build clean superClean updateLock push updateTailwind
+up:            ## Lance toute l'application (http://localhost:8090)
+	docker compose up --build -d
 
-uselessFiles := $(wildcard src/*.js)
+down:
+	docker compose down
 
-start: updateTailwind
-	npm start
-	@$(MAKE) clean
+logs:
+	docker compose logs -f
 
-build: updateTailwind
-	npm run build
-	@$(MAKE) clean
+install:
+	pip install -r backend/requirements-dev.txt
+	cd frontend && npm install
 
-updateTailwind:
-	npx tailwindcss -i ./src/css/input.css -o ./src/css/output.css
+# secret de développement : n'est jamais utilisé hors de votre machine
+DEV_SSO_SECRET ?= dev-only-sso-secret-change-me-0123456789
 
-clean:
-	rm -rf $(uselessFiles)
+dev-backend:   ## API sur :8000 (SQLite local), login de dev + secret SSO de dev
+	cd backend && SPORTSPLITTER_DEV_LOGIN=1 SPORTSPLITTER_SSO_SECRET=$(DEV_SSO_SECRET) \
+		SPORTSPLITTER_PUBLIC_URL=http://localhost:5173 uvicorn app.main:app --reload
 
-superClean: clean
-	rm -rf dist
+SUB ?= 1
+ROLE ?= admin
+sso-url:       ## URL de connexion locale : make sso-url SUB=1 ROLE=admin (secret de dev ou SPORTSPLITTER_SSO_SECRET)
+	SPORTSPLITTER_SSO_SECRET=$${SPORTSPLITTER_SSO_SECRET:-$(DEV_SSO_SECRET)} \
+		SPORTSPLITTER_PUBLIC_URL=$${SPORTSPLITTER_PUBLIC_URL:-http://localhost:5173} \
+		python scripts/mint_sso_token.py --sub $(SUB) --role $(ROLE)
 
-updateLock:
-	npm update
+dev-frontend:  ## Interface sur :5173
+	cd frontend && npm run dev
 
-push: updateLock superClean
-	git add .
-	git commit -m "$(ARGS)"
-	git push
+test: test-backend test-frontend
+
+test-backend:
+	cd backend && python -m pytest -q
+
+test-frontend:
+	cd frontend && npm run test:coverage
+
+lint:
+	cd backend && ruff check app tests
+	cd frontend && npm run typecheck
+
+dump:          ## Dump de diagnostic (données + erreurs) dans test/dumps, commité et poussé
+	./scripts/dump.sh
