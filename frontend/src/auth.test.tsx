@@ -39,6 +39,13 @@ describe("accès sans session", () => {
     // /api/health (public : l'URL d'Orqea de l'environnement) puis /api/me, rien d'autre
     expect(f.mock.calls.map(([u]) => u).sort()).toEqual(["/api/health", "/api/me"]);
     expectNothingOfTheApp();
+    // la marque reste : logo animé au survol, « SportSplitter par Orqea », crédits
+    const brand = screen.getByTestId("screen-brand");
+    expect(brand).toHaveTextContent("SportSplitter par Orqea");
+    expect(brand.querySelector("svg")).toHaveClass("ss-logo--hover");
+    expect(screen.getByRole("link", { name: "Propulsé par Orqea" })).toHaveAttribute("href", "https://orqea.example/app");
+    expect(screen.getByRole("link", { name: "Propulsé par Orqea" })).toHaveClass("text-slate-600");
+    expect(screen.getByRole("link", { name: "Développé par Erwann Laplante (nouvel onglet)" })).toBeInTheDocument();
   });
   it("401 sans corps JSON : lien Orqea par défaut", async () => {
     mockFetch(async () => ({ ok: false, status: 401, json: () => Promise.reject(new Error("html")) }) as Response);

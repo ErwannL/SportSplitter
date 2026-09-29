@@ -16,6 +16,7 @@ describe("HeaderCredits", () => {
     expect(author).toHaveAttribute("target", "_blank");
     expect(author).toHaveAttribute("rel", "noreferrer noopener");
     expect(owner).toHaveTextContent("Propulsé par Orqea");
+    expect(owner).toHaveClass("text-side-text");
   });
 
   it("libellés anglais", () => {

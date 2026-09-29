@@ -82,7 +82,7 @@ export function Layout() {
           {!collapsed && (
             <div className="min-w-0">
               <NavLink to="/" className="block text-lg font-bold leading-tight tracking-tight text-on hover:text-indigo-300">
-                {t("app.name")}
+                {t("app.name")} <span className="text-xs font-normal text-side-muted">{t("app.byline")}</span>
               </NavLink>
               {/* en-tête : masqué sous 1024 px et quand le menu est replié (voir le pied du menu) */}
               <HeaderCredits className="hidden lg:flex" />

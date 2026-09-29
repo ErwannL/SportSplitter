@@ -10,7 +10,23 @@ const EXTERNAL = { target: "_blank", rel: "noreferrer noopener" } as const;
  * Une ligne disparaît si son nom est vide ; le bloc ne rend rien si les deux le sont.
  * `compact` : seule la mention du propriétaire (menu replié), avec son aria-label complet.
  */
-export function HeaderCredits({ credits, compact = false, className }: { credits?: Credits; compact?: boolean; className?: string }) {
+/** Couleurs des liens : `side` sur le menu sombre, `light` sur un écran clair (sans session). */
+const TONES = {
+  side: { owner: "text-side-text hover:text-on", author: "text-side-muted hover:text-on" },
+  light: { owner: "text-slate-600 hover:text-indigo-600", author: "text-slate-500 hover:text-indigo-600" },
+} as const;
+
+export function HeaderCredits({
+  credits,
+  compact = false,
+  className,
+  tone = "side",
+}: {
+  credits?: Credits;
+  compact?: boolean;
+  className?: string;
+  tone?: keyof typeof TONES;
+}) {
   const t = useT();
   const orqeaUrl = useAuth((s) => s.orqeaUrl);
   const { owner, author } = credits ?? { ...CREDITS, owner: { ...CREDITS.owner, href: orqeaUrl } };
@@ -27,7 +43,7 @@ export function HeaderCredits({ credits, compact = false, className }: { credits
           // un nouvel onglet tombait sur la page de connexion d'Orqea.
           aria-label={ownerLabel}
           title={ownerLabel}
-          className="truncate text-xs font-semibold text-side-text transition hover:text-on"
+          className={clsx("truncate text-xs font-semibold transition", TONES[tone].owner)}
         >
           {compact ? owner.name : ownerLabel}
         </a>
@@ -37,7 +53,7 @@ export function HeaderCredits({ credits, compact = false, className }: { credits
           href={author.href}
           {...EXTERNAL}
           aria-label={`${authorLabel} ${t("credits.newTab")}`}
-          className="truncate text-[11px] text-side-muted transition hover:text-on"
+          className={clsx("truncate text-[11px] transition", TONES[tone].author)}
         >
           {authorLabel}
         </a>
