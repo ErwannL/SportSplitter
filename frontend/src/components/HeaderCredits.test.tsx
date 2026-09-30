@@ -8,11 +8,11 @@ describe("HeaderCredits", () => {
   it("rend les deux liens (href, target, rel, aria-label) en français", () => {
     render(<HeaderCredits />);
     const owner = screen.getByRole("link", { name: "Propulsé par Orqea" });
-    const author = screen.getByRole("link", { name: "Développé par Erwann Laplante (nouvel onglet)" });
+    const author = screen.getByRole("link", { name: "Développé par Erwann Laplante" });
     expect(owner).toHaveAttribute("href", "https://orqea.dev");
     expect(author).toHaveAttribute("href", "https://github.com/ErwannL");
-    // Orqea s'ouvre dans le MÊME onglet (sa session est par onglet), l'auteur dans un nouveau.
-    expect(owner).not.toHaveAttribute("target");
+    // Orqea s'ouvre dans le MÊME onglet, hors iframe ; l'auteur dans un nouveau.
+    expect(owner).toHaveAttribute("target", "_top");
     expect(author).toHaveAttribute("target", "_blank");
     expect(author).toHaveAttribute("rel", "noreferrer noopener");
     expect(owner).toHaveTextContent("Propulsé par Orqea");
@@ -23,7 +23,7 @@ describe("HeaderCredits", () => {
     usePrefs.setState({ lang: "en" });
     render(<HeaderCredits />);
     expect(screen.getByRole("link", { name: "Boosted by Orqea" })).toHaveTextContent("Boosted by Orqea");
-    expect(screen.getByRole("link", { name: "Developed by Erwann Laplante (new tab)" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Developed by Erwann Laplante" })).toBeInTheDocument();
   });
 
   it("une ligne disparaît si son nom est vide, rien si les deux le sont", () => {

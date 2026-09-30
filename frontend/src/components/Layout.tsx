@@ -38,6 +38,7 @@ function SideLink({ label, href, icon, collapsed }: { label: string; href: strin
   return (
     <a
       href={href}
+      target="_top"
       title={label}
       aria-label={label}
       className={clsx("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-side-hover hover:text-on", collapsed && "justify-center")}

@@ -39,8 +39,8 @@ export function HeaderCredits({
       {owner.name && (
         <a
           href={owner.href}
-          // MÊME onglet : la session d'Orqea vit dans l'onglet (sessionStorage) ;
-          // un nouvel onglet tombait sur la page de connexion d'Orqea.
+          // MÊME onglet (la session d'Orqea vit dans l'onglet) et hors de l'iframe de la console.
+          target="_top"
           aria-label={ownerLabel}
           title={ownerLabel}
           className={clsx("truncate text-xs font-semibold transition", TONES[tone].owner)}
@@ -52,7 +52,7 @@ export function HeaderCredits({
         <a
           href={author.href}
           {...EXTERNAL}
-          aria-label={`${authorLabel} ${t("credits.newTab")}`}
+          aria-label={authorLabel}
           className={clsx("truncate text-[11px] transition", TONES[tone].author)}
         >
           {authorLabel}

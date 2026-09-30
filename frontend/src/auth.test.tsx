@@ -45,7 +45,7 @@ describe("accès sans session", () => {
     expect(brand.querySelector("svg")).toHaveClass("ss-logo--hover");
     expect(screen.getByRole("link", { name: "Propulsé par Orqea" })).toHaveAttribute("href", "https://orqea.example/app");
     expect(screen.getByRole("link", { name: "Propulsé par Orqea" })).toHaveClass("text-slate-600");
-    expect(screen.getByRole("link", { name: "Développé par Erwann Laplante (nouvel onglet)" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Développé par Erwann Laplante" })).toBeInTheDocument();
   });
   it("401 sans corps JSON : lien Orqea par défaut", async () => {
     mockFetch(async () => ({ ok: false, status: 401, json: () => Promise.reject(new Error("html")) }) as Response);

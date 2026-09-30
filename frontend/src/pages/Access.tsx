@@ -29,6 +29,7 @@ export function OrqeaButton({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
+      target="_top"
       className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-on shadow-sm transition hover:bg-indigo-500"
     >
       {label} <ExternalLink size={16} />
