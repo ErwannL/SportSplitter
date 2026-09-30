@@ -12,6 +12,7 @@ import { canEditRules, usePrefs, useT } from "../prefs";
 import { useStore } from "../store";
 import { Flag } from "./Flag";
 import { HeaderCredits } from "./HeaderCredits";
+import { inIframe } from "../lib/embedded";
 import { Logo, LogoLoader } from "./Logo";
 import { Onboarding } from "./Onboarding";
 import { StepGuide } from "./StepGuide";
@@ -170,12 +171,14 @@ export function Layout() {
               </span>
             )}
           </div>
-          <SideLink
-            collapsed={collapsed}
-            label={me.name ? `${t("nav.backToOrqea")} (${me.name})` : t("nav.backToOrqea")}
-            icon={<ArrowLeftToLine size={18} />}
-            href={orqeaUrl}
-          />
+          {!inIframe() && (
+            <SideLink
+              collapsed={collapsed}
+              label={me.name ? `${t("nav.backToOrqea")} (${me.name})` : t("nav.backToOrqea")}
+              icon={<ArrowLeftToLine size={18} />}
+              href={orqeaUrl}
+            />
+          )}
           <SideButton
             collapsed={collapsed}
             label={collapsed ? t("nav.expand") : t("nav.collapse")}

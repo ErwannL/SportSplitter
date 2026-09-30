@@ -49,7 +49,7 @@ describe("SsoPage", () => {
       return jsonRes(readyWs());
     });
     render(<App />);
-    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Revenir sur Orqea \(Alice\)/)).toBeInTheDocument();
     expect(window.location.pathname).toBe("/");
     expect(window.location.hash).toBe("");
     // /api/me n'est pas appelé avant l'échange du jeton

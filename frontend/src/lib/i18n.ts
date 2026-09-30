@@ -234,7 +234,7 @@ const fr = {
   "sso.error.SSO_REPLAYED": "Ce lien de connexion a déjà été utilisé. Relancez l'application depuis Orqea.",
   "sso.error.SSO_DISABLED": "La connexion via Orqea n'est pas configurée sur ce serveur. Contactez l'administrateur.",
   "sso.error.SSO_MISSING": "Aucun jeton de connexion reçu. Ouvrez l'application depuis Orqea.",
-  "nav.backToOrqea": "Retour sur Orqea",
+  "nav.backToOrqea": "Revenir sur Orqea",
   "nav.home": "Accueil — Planning",
   "app.name": "SportSplitter",
   "app.byline": "par Orqea",

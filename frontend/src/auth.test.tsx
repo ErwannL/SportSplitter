@@ -64,7 +64,7 @@ describe("accès sans session", () => {
     expectNothingOfTheApp();
     up = true;
     await userEvent.click(screen.getByRole("button", { name: /Réessayer/ }));
-    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Revenir sur Orqea \(Alice\)/)).toBeInTheDocument();
     expect(useStore.getState().ws.sports[0].name).toBe("Foot");
   });
   it("écrans en anglais", async () => {
@@ -96,7 +96,7 @@ describe("session expirée en cours d'usage", () => {
       return session ? jsonRes(readyWs()) : denied();
     });
     render(<App />);
-    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Revenir sur Orqea \(Alice\)/)).toBeInTheDocument();
     session = false;
     act(() => void useStore.getState().addSport("Tennis"));
     await act(() => useStore.getState().flush());
@@ -110,7 +110,7 @@ describe("session expirée en cours d'usage", () => {
     // reconnexion
     session = true;
     await act(() => useAuth.getState().check());
-    expect(await screen.findByText(/Retour sur Orqea \(Alice\)/)).toBeInTheDocument();
+    expect(await screen.findByText(/Revenir sur Orqea \(Alice\)/)).toBeInTheDocument();
     expect(useStore.getState().ws.sports.map((s) => s.name)).toEqual(["Foot", "Tennis"]);
     expect(puts).toHaveLength(1);
     expect(JSON.parse(puts[0]).sports).toHaveLength(2);
@@ -130,7 +130,7 @@ describe("retour sur Orqea (pas de déconnexion depuis SportSplitter)", () => {
       return url === "/api/me" ? jsonRes(ME) : jsonRes(readyWs());
     });
     render(<App />);
-    return { f, link: await screen.findByRole("link", { name: /Retour sur Orqea \(Alice\)/ }) };
+    return { f, link: await screen.findByRole("link", { name: /Revenir sur Orqea \(Alice\)/ }) };
   }
   it("le lien vise l'Orqea de L'ENVIRONNEMENT, et aucun bouton de déconnexion n'existe", async () => {
     const { link } = await loggedIn();
@@ -145,7 +145,7 @@ describe("retour sur Orqea (pas de déconnexion depuis SportSplitter)", () => {
       return url === "/api/me" ? jsonRes(ME) : jsonRes(readyWs());
     });
     render(<App />);
-    expect(await screen.findByRole("link", { name: /Retour sur Orqea/ })).toHaveAttribute("href", "https://orqea.dev");
+    expect(await screen.findByRole("link", { name: /Revenir sur Orqea/ })).toHaveAttribute("href", "https://orqea.dev");
   });
   it("échec réseau : déconnecté quand même, sans erreur non gérée", async () => {
     await loggedIn();
