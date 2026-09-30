@@ -6,7 +6,7 @@ import { useT } from "../prefs";
 const EXTERNAL = { target: "_blank", rel: "noreferrer noopener" } as const;
 
 /**
- * « Boosted by Orqea » / « Developed by Erwann Laplante » : deux liens distincts, empilés.
+ * « Propulsé par Orqea » / « Developed by Erwann Laplante » : deux liens distincts, empilés.
  * Une ligne disparaît si son nom est vide ; le bloc ne rend rien si les deux le sont.
  * `compact` : seule la mention du propriétaire (menu replié), avec son aria-label complet.
  */

@@ -54,7 +54,7 @@ describe("Layout", () => {
   });
   it("le logo s'anime aussi au focus clavier et reste fixe sous prefers-reduced-motion", () => {
     const css: string = readFileSync("src/index.css", "utf8");
-    expect(css).toContain(".group:focus-visible .ss-logo--hover .ss-slice");
+    expect(css).toContain(".group:focus-within .ss-logo--hover .ss-slice");
     expect(css).toContain("prefers-reduced-motion: reduce");
   });
 });

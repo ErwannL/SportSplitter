@@ -43,6 +43,9 @@ describe("accès sans session", () => {
     const brand = screen.getByTestId("screen-brand");
     expect(brand).toHaveTextContent("SportSplitter par Orqea");
     expect(brand.querySelector("svg")).toHaveClass("ss-logo--hover");
+    // les deux lignes sont DANS l'en-tête de marque, sous le nom
+    expect(brand).toHaveTextContent("Propulsé par Orqea");
+    expect(brand).toHaveTextContent("Développé par Erwann Laplante");
     expect(screen.getByRole("link", { name: "Propulsé par Orqea" })).toHaveAttribute("href", "https://orqea.example/app");
     expect(screen.getByRole("link", { name: "Propulsé par Orqea" })).toHaveClass("text-slate-600");
     expect(screen.getByRole("link", { name: "Développé par Erwann Laplante" })).toBeInTheDocument();

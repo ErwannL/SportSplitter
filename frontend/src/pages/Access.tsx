@@ -11,15 +11,19 @@ export function Screen({ icon, title, text, children }: { icon: ReactNode; title
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-slate-900">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <p className="mb-6 flex items-center justify-center gap-2 font-bold" data-testid="screen-brand">
-          <Logo size={32} mode="hover" title={t("app.name")} />
-          {t("app.name")} <span className="text-sm font-normal text-slate-500">{t("app.byline")}</span>
-        </p>
+        <div className="group mb-6 flex items-center justify-center gap-3 text-left" data-testid="screen-brand">
+          <Logo size={36} mode="hover" title={t("app.name")} />
+          <div className="min-w-0">
+            <p className="font-bold leading-tight">
+              {t("app.name")} <span className="text-sm font-normal text-slate-500">{t("app.byline")}</span>
+            </p>
+            <HeaderCredits tone="light" />
+          </div>
+        </div>
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">{icon}</div>
         <h1 className="text-xl font-bold">{title}</h1>
         <p className="mt-2 text-sm text-slate-500">{text}</p>
         {children && <div className="mt-6 flex flex-col items-center gap-2">{children}</div>}
-        <HeaderCredits tone="light" className="mt-6 items-center" />
       </div>
     </main>
   );

@@ -565,7 +565,7 @@ const en: Record<Key, string> = {
   "nav.home": "Home — Planning",
   "app.name": "SportSplitter",
   "app.byline": "by Orqea",
-  "credits.owner": "Boosted by {name}",
+  "credits.owner": "Powered by {name}",
   "credits.author": "Developed by {name}",
   "issue.barrette_capacity": "“{sport}” is paired for “{level}”, but none of its places takes {count} classes at once: the sport is ignored for this level.",
   "fix.barrette_capacity": "In Places, set “Classes” to {count} for one of “{sport}”'s places, or untick “Paired”.",

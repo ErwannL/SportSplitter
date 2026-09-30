@@ -22,7 +22,7 @@ describe("HeaderCredits", () => {
   it("libellés anglais", () => {
     usePrefs.setState({ lang: "en" });
     render(<HeaderCredits />);
-    expect(screen.getByRole("link", { name: "Boosted by Orqea" })).toHaveTextContent("Boosted by Orqea");
+    expect(screen.getByRole("link", { name: "Powered by Orqea" })).toHaveTextContent("Powered by Orqea");
     expect(screen.getByRole("link", { name: "Developed by Erwann Laplante" })).toBeInTheDocument();
   });
 

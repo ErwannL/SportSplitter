@@ -86,8 +86,8 @@ export function Layout() {
               <NavLink to="/" className="block text-lg font-bold leading-tight tracking-tight text-on hover:text-indigo-300">
                 {t("app.name")} <span className="text-xs font-normal text-side-muted">{t("app.byline")}</span>
               </NavLink>
-              {/* en-tête : masqué sous 1024 px et quand le menu est replié (voir le pied du menu) */}
-              <HeaderCredits className="hidden lg:flex" />
+              {/* sous le nom, menu déplié, à toute largeur ; replié : mention compacte en pied */}
+              <HeaderCredits />
             </div>
           )}
         </div>
@@ -155,12 +155,8 @@ export function Layout() {
               </button>
             ))}
           </div>
-          {/* pied du menu : crédits complets sous 1024 px, mention compacte quand le menu est replié */}
-          {collapsed ? (
-            <HeaderCredits compact className="items-center px-1 py-1 text-center" />
-          ) : (
-            <HeaderCredits className="px-3 py-1 lg:hidden" />
-          )}
+          {/* pied du menu replié : mention compacte (les deux lignes n'y tiennent pas) */}
+          {collapsed && <HeaderCredits compact className="items-center px-1 py-1 text-center" />}
           <div className="my-1 border-t border-side-hover" />
           <div className={clsx("flex items-center gap-2 px-3 py-1.5 text-xs", collapsed && "justify-center")} title={t("save.hint")}>
             {save === "saving" && <LogoLoader size={14} />}

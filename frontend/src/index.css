@@ -89,7 +89,7 @@ body {
 .ss-logo--hover:hover .ss-slice,
 .group:hover .ss-logo--hover .ss-slice,
 .ss-logo--hover:focus-visible .ss-slice,
-.group:focus-visible .ss-logo--hover .ss-slice {
+.group:focus-within .ss-logo--hover .ss-slice {
   animation: ss-split 1.1s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
